@@ -95,9 +95,34 @@ jobs:
           packaging/build-qtkeychain.sh dist/qtkeychain
           cygpath -w "$PWD/dist/mpv" >> "$GITHUB_PATH"
           cygpath -w "$PWD/dist/qtkeychain/bin" >> "$GITHUB_PATH"
-      - run: |
+      - name: configure
+        run: |
+          set -o pipefail
           cmake -S . -B build/ci -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DMPV_DIR="$(cygpath -m "$PWD/dist/mpv")" \
-            -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH;$(cygpath -m "$PWD/dist/qtkeychain")"
-      - run: cmake --build build/ci
-      - run: ctest --test-dir build/ci --output-on-failure
+            -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH;$(cygpath -m "$PWD/dist/qtkeychain")" 2>&1 | tee configure.log
+      - name: build
+        run: |
+          set -o pipefail
+          cmake --build build/ci 2>&1 | tee build.log
+      - name: test
+        run: |
+          set -o pipefail
+          ctest --test-dir build/ci --output-on-failure 2>&1 | tee test.log
+      # The full log needs a GitHub login; annotations are public, so a failure stays readable.
+      - name: failure details
+        if: failure()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for name in ("configure.log", "build.log", "test.log"):
+              log = Path(name)
+              if not log.exists():
+                  continue
+              lines = log.read_text(encoding="utf-8", errors="replace").splitlines()
+              errors = [i for i, line in enumerate(lines) if "error" in line.lower()]
+              start = max(0, errors[0] - 5) if errors else max(0, len(lines) - 80)
+              text = "\n".join(lines[start:start + 120])[-15000:]
+              message = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+              print(f"::error title=Windows {name}::{message}")
+          PY
