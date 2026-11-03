@@ -22,6 +22,15 @@ Rectangle {
     // How long the picture takes to turn to a new song: as long as the change when two songs mix.
     // Set as the song changes, so it holds while the colors turn (they come a moment later).
     property int turnMs: Theme.normalMs * 2
+    readonly property real dimming: {
+        const linear = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
+        const luminance = c => 0.2126 * linear(c.r) + 0.7152 * linear(c.g) + 0.0722 * linear(c.b)
+        const brightest = Math.max(luminance(colors[0]), luminance(colors[1]), luminance(colors[2]))
+        // White reads at 4.5:1 on a luminance up to 0.183. Black at alpha a scales the channels by
+        // 1 - a, so the luminance by about (1 - a)^2.2.
+        const needed = brightest > 0.183 ? 1 - Math.pow(0.183 / brightest, 1 / 2.2) : 0
+        return Math.max(0.22, Math.min(0.62, needed))
+    }
     property color color1: colors[0]
     property color color2: colors[1]
     property color color3: colors[2]
@@ -88,10 +97,16 @@ Rectangle {
         opacity: 0.85
     }
 
-    // Darkens the picture a little so white text always reads.
+    // Darkens the picture so white text reads on it: a fifth for a dark cover, more for a bright one,
+    // as much as WCAG's 4.5:1 for white needs on the brightest of the colors (the blobs drift, so
+    // any of them can be under the text). It turns with the colors.
     Rectangle {
         anchors.fill: parent
-        color: Qt.rgba(0, 0, 0, 0.22)
+        color: Qt.rgba(0, 0, 0, root.dimming)
+
+        Behavior on color {
+            ColorAnimation { duration: root.turnMs }
+        }
     }
 
     IconButton {

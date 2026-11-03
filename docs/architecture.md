@@ -223,9 +223,9 @@ center-crops on a worker thread at exactly the size the image is shown, so the G
 covers and scrolling never decodes on the GUI thread.
 
 The accent color of the playing song (progress line, primary buttons, full-screen background) comes
-from `src/core/palette.*`: three prominent colors of the cover, and a version of the first with
-enough contrast against the light or dark background, so near-white and near-black covers still
-give a visible accent.
+from `src/core/palette.*`: three prominent colors of the cover, and a version of the first that
+reads as text on the light or dark background (WCAG 4.5:1, measured as relative luminance: HSL
+lightness put a yellow accent at 1.2:1 on white), so every cover gives a visible accent.
 
 ## Lyrics
 

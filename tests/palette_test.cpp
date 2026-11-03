@@ -40,6 +40,18 @@ private slots:
         // near-black one on the dark background.
         QVERIFY(accentFrom(QColor(250, 245, 230), false).lightnessF() <= 0.52f);
         QVERIFY(accentFrom(QColor(20, 10, 40), true).lightnessF() >= 0.62f);
+        // Every hue reads as text on both backgrounds. Yellow and cyan at the lightness that suits
+        // blue were nearly invisible on the light one.
+        const QColor light(0xfa, 0xfa, 0xfa);
+        const QColor dark(0x10, 0x10, 0x10);
+        for (int hue = 0; hue < 360; hue += 15) {
+            const QColor cover = QColor::fromHsl(hue, 230, 140);
+            QVERIFY2(contrast(accentFrom(cover, false), light) >= 4.5, qPrintable(QString::number(hue)));
+            QVERIFY2(contrast(accentFrom(cover, true), dark) >= 4.5, qPrintable(QString::number(hue)));
+        }
+        // The hue stays: a yellow cover gives a dark yellow, not a grey.
+        QCOMPARE(accentFrom(QColor(240, 220, 20), false).hslHue() / 10, QColor(240, 220, 20).hslHue() / 10);
+        QCOMPARE(qRound(contrast(Qt::black, Qt::white)), 21);
     }
 
     void decodeCropsTheCenter()

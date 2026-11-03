@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 
 namespace legato {
 
@@ -67,15 +68,37 @@ QList<QColor> extractPalette(const QImage &image)
     return colors;
 }
 
+double luminance(const QColor &color)
+{
+    const auto linear = [](float c) { return c <= 0.04045f ? c / 12.92 : std::pow((c + 0.055) / 1.055, 2.4); };
+    const QColor rgb = color.toRgb();
+    return 0.2126 * linear(rgb.redF()) + 0.7152 * linear(rgb.greenF()) + 0.0722 * linear(rgb.blueF());
+}
+
+double contrast(const QColor &a, const QColor &b)
+{
+    const double la = luminance(a);
+    const double lb = luminance(b);
+    return (std::max(la, lb) + 0.05) / (std::min(la, lb) + 0.05);
+}
+
 QColor accentFrom(const QColor &color, bool dark)
 {
+    // Theme.bg: the page under the playing row's title and the controls.
+    const QColor background = dark ? QColor(0x10, 0x10, 0x10) : QColor(0xfa, 0xfa, 0xfa);
     float h, s, l, a;
     color.getHslF(&h, &s, &l, &a);
     if (h < 0) // achromatic
         return dark ? QColor(0x95, 0x90, 0xff) : QColor(0x5a, 0x52, 0xd6);
     s = std::max(s, 0.45f);
     l = dark ? std::clamp(l, 0.62f, 0.75f) : std::clamp(l, 0.36f, 0.50f);
-    return QColor::fromHslF(h, s, l);
+    // Lighter on dark, darker on light, until it reads.
+    QColor accent = QColor::fromHslF(h, s, l);
+    while (contrast(accent, background) < 4.5 && l > 0.05f && l < 0.95f) {
+        l += dark ? 0.02f : -0.02f;
+        accent = QColor::fromHslF(h, s, std::clamp(l, 0.0f, 1.0f));
+    }
+    return accent;
 }
 
 } // namespace legato

@@ -158,7 +158,9 @@ Instrumental gaps show "• • •". In the side panel and the full-screen play
 
 ## Full-screen player
 
-- Large blurred blobs in the cover's colors drift behind everything. Close with X or Esc.
+- Large blurred blobs in the cover's colors drift behind everything, darkened just enough for white
+  text to read (WCAG 4.5:1 on the brightest of them): a yellow cover more than a navy one. Close
+  with X or Esc.
 - Cover and controls on the left; lyrics or Up Next on the right, chosen with two buttons after the
   volume slider and remembered. With neither, everything is centered.
 - Title over "Artist — Album" with links, star and "…", the progress bar with times, the controls and
