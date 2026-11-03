@@ -6,6 +6,7 @@
 
 #include <QLocale>
 #include <QQmlEngine>
+#include <QSet>
 
 #include <algorithm>
 
@@ -279,7 +280,39 @@ void ArtistDetails::fetch()
         }
         emit changed();
         finish();
+        findAppearances(releases);
         loadSongs(std::move(releases));
+    }));
+}
+
+void ArtistDetails::findAppearances(const QList<Album> &own)
+{
+    QSet<QString> owned;
+    for (const Album &album : own)
+        owned.insert(album.id);
+    client()->searchSongs(m_artist.name, AppearancesSearched, 0, guard([this, owned](const QList<Song> &songs, const QString &) {
+        // A failed search leaves the row out, as an empty one.
+        QList<Album> albums;
+        QSet<QString> seen = owned;
+        for (const Song &song : songs) {
+            const bool sings = song.artistId == m_id
+                || std::any_of(song.artists.cbegin(), song.artists.cend(), [this](const ArtistRef &a) { return a.id == m_id; });
+            if (!sings || song.albumId.isEmpty() || seen.contains(song.albumId))
+                continue;
+            seen.insert(song.albumId);
+            Album album;
+            album.id = song.albumId;
+            album.name = song.album;
+            album.coverArt = song.coverArt;
+            album.year = song.year;
+            album.artist = song.albumArtist;
+            album.artists = song.albumArtists;
+            if (!song.albumArtists.isEmpty())
+                album.artistId = song.albumArtists.constFirst().id;
+            albums.append(album);
+        }
+        std::stable_sort(albums.begin(), albums.end(), newerThan);
+        m_appearsOn.set(albums);
     }));
 }
 
@@ -336,6 +369,7 @@ void ArtistDetails::clear()
     m_latest.clear();
     m_albums.set({});
     m_singles.set({});
+    m_appearsOn.set({});
     m_top.set({});
     m_songs.clear();
     m_songsReady = false;

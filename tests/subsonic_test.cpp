@@ -127,6 +127,18 @@ private slots:
         QCOMPARE(song.genres, QStringList({u"Rock"_s, u"Indie"_s}));
         QCOMPARE(song.created.date(), QDate(2026, 11, 1));
         QCOMPARE(song.played.toUTC().date(), QDate(2026, 11, 3));
+        // No album artists on a plain Subsonic server: not the song's artist in their place.
+        QVERIFY(song.albumArtists.isEmpty());
+        QVERIFY(song.albumArtist.isEmpty());
+
+        const QByteArray feature = R"({"subsonic-response":{"status":"ok","song":{"id":"s2",
+            "artist":"Low feat. Mimi","artists":[{"id":"r1","name":"Low"},{"id":"r2","name":"Mimi"}],
+            "albumArtists":[{"id":"r3","name":"Various"}],"displayAlbumArtist":"Various Artists"}}})";
+        const Song guest = subsonic::parseSong(subsonic::parseEnvelope(feature).body);
+        QCOMPARE(guest.artists.size(), 2);
+        QCOMPARE(guest.albumArtists.size(), 1);
+        QCOMPARE(guest.albumArtists.first().id, u"r3"_s);
+        QCOMPARE(guest.albumArtist, u"Various Artists"_s);
         QVERIFY(subsonic::parseSong(subsonic::parseEnvelope(R"({"subsonic-response":{"status":"ok"}})").body).id.isEmpty());
 
         const QByteArray album = R"({"subsonic-response":{"status":"ok","album":{"id":"a1","name":"X",

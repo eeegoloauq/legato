@@ -97,7 +97,8 @@ volume buttons.
 - Round photo, name, Play, Shuffle and a favorite star.
 - Latest Release on the left; Top Songs as a grid of three rows on the right. Top songs use the
   listener's play counts first and Last.fm's top tracks as fallback.
-- Albums, then Singles & EPs, as carousels.
+- Albums, then Singles & EPs, then Appears On (other artists' albums with songs of this artist), as
+  carousels.
 
 ## Playlist page
 

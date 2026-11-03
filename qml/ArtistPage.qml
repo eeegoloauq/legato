@@ -280,6 +280,19 @@ ContentPage {
                     subtitleLinks: false
                 }
             }
+
+            // Other artists' albums the artist sings or plays on, under their album artist.
+            Carousel {
+                id: appearsOn
+
+                width: parent.width
+                visible: details.appearsOn.count > 0
+                title: qsTr("Appears On")
+                model: details.appearsOn
+                delegate: AlbumCard {
+                    coverSize: appearsOn.coverSize
+                }
+            }
         }
 
         T.ScrollBar.vertical: Scroller {}

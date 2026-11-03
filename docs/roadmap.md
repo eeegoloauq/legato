@@ -27,7 +27,6 @@ Everything in scope above, on Linux (tarball, RPM, Arch package) and Windows (in
 
 - Windows: media keys and the media flyout (SMTC), window snapping and shadow for the frameless
   window.
-- Appears On on the artist page, once an API call lists those albums.
 - An endless Instant Mix.
 - A streaming quality setting (Opus, MP3) for slow connections.
 - Flatpak on Flathub, once its KDE runtime has Qt 6.12.

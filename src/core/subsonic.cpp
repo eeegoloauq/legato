@@ -236,6 +236,14 @@ QList<Song> parseSongs(const QJsonValue &list, const QString &fallbackCover = {}
         song.albumId = o.value("albumId"_L1).toString();
         song.artistId = o.value("artistId"_L1).toString();
         song.artists = parseArtistRefs(o, "artists"_L1);
+        for (const QJsonValue &value : asList(o.value("albumArtists"_L1))) {
+            const QJsonObject a = value.toObject();
+            if (!a.value("name"_L1).toString().isEmpty())
+                song.albumArtists.append({a.value("id"_L1).toString(), a.value("name"_L1).toString()});
+        }
+        song.albumArtist = o.value("displayAlbumArtist"_L1).toString();
+        if (song.albumArtist.isEmpty() && !song.albumArtists.isEmpty())
+            song.albumArtist = song.albumArtists.constFirst().name;
         song.track = o.value("track"_L1).toInt();
         song.disc = o.value("discNumber"_L1).toInt();
         song.year = o.value("year"_L1).toInt();

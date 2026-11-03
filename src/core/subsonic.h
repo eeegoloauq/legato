@@ -82,6 +82,9 @@ struct Song {
     QString artistId;
     // OpenSubsonic: each artist of the song. At least the one of `artist` when it has an id.
     QList<ArtistRef> artists;
+    // OpenSubsonic: the album's artists, and their names as one line; empty on other servers.
+    QList<ArtistRef> albumArtists;
+    QString albumArtist;
     int track = 0;
     int disc = 0;
     int year = 0;

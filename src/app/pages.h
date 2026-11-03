@@ -198,6 +198,8 @@ class ArtistDetails : public LibraryQuery
     // Newest first.
     Q_PROPERTY(legato::AlbumModel *albums READ albums CONSTANT)
     Q_PROPERTY(legato::AlbumModel *singles READ singles CONSTANT)
+    // Other artists' albums with songs of this artist (features, guest spots), newest first.
+    Q_PROPERTY(legato::AlbumModel *appearsOn READ appearsOn CONSTANT)
     // The user's most played songs of the artist, else the most popular ones Last.fm knows.
     Q_PROPERTY(legato::SongModel *topSongs READ topSongs CONSTANT)
     // Play and Shuffle work once every album's songs are here.
@@ -206,6 +208,8 @@ class ArtistDetails : public LibraryQuery
 public:
     // How many top songs the page shows: a 3 by 3 grid.
     static constexpr int TopCount = 9;
+    // The most songs search3 gives at once; an artist on more than this many songs may miss some.
+    static constexpr int AppearancesSearched = 500;
 
     explicit ArtistDetails(QObject *parent = nullptr);
 
@@ -217,6 +221,7 @@ public:
     QVariantMap latest() const { return m_latest; }
     AlbumModel *albums() { return &m_albums; }
     AlbumModel *singles() { return &m_singles; }
+    AlbumModel *appearsOn() { return &m_appearsOn; }
     SongModel *topSongs() { return &m_top; }
     bool songsReady() const { return m_songsReady; }
 
@@ -236,12 +241,16 @@ protected:
 private:
     void loadSongs(QList<Album> releases);
     void chooseTopSongs();
+    // Subsonic has no call for these: search3 finds the songs that name the artist, and the albums
+    // of those that are not the artist's own make the list.
+    void findAppearances(const QList<Album> &own);
 
     QString m_id;
     Artist m_artist;
     QVariantMap m_latest;
     AlbumModel m_albums;
     AlbumModel m_singles;
+    AlbumModel m_appearsOn;
     SongModel m_top;
     // Album by album, in the order of `releases` given to loadSongs.
     QList<QList<Song>> m_songs;

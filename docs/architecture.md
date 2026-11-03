@@ -89,7 +89,9 @@ Endpoints in use, tested against Navidrome 0.64.1:
 | Top songs | own play counts first (`playCount` of the artist's songs), `getTopSongs` (Last.fm, matched to the library) as fallback |
 | Queue resume | `savePlayQueue` / `getPlayQueue` (current song, position in ms, `changedBy`, `changed`) |
 | Favorites | `star`, `unstar` with `id`, `albumId` or `artistId`, `getStarred2` |
-| Playlists | `getPlaylists`, `getPlaylist` |
+| Playlists | `getPlaylists`, `getPlaylist`; `createPlaylist`, `updatePlaylist` (`songIdToAdd`, `songIndexToRemove`, `name`), `deletePlaylist`, as a POST form when the server takes one. Editable: owned by the user and not `readonly` (Navidrome) |
+| Appears On | `search3` with the artist's name (up to 500 songs): songs whose `artists` include the artist, on albums that are not the artist's own (`getArtist` lists only albums the artist is the album artist of, unless Navidrome's `Subsonic.ArtistParticipations` is on) |
+| Album artists of a song | OpenSubsonic `albumArtists`, `displayAlbumArtist` |
 | Multiple artists per song | OpenSubsonic `artists` arrays |
 | Singles and EPs | OpenSubsonic `releaseTypes`; if missing, albums with 1–3 songs count as singles |
 

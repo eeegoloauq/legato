@@ -107,6 +107,13 @@ def songs(a):
                 "discNumber": 2 if two_discs and n > count // 2 else 1, "year": a["year"],
                 "size": 5_300_000, "playCount": a["playCount"] * (n % 3), "genre": a["genre"],
                 "genres": [{"name": a["genre"]}, {"name": "Ambient"}], "created": a["created"]}
+        song["albumArtists"] = a["artists"]
+        song["displayAlbumArtist"] = a["artist"]
+        # A guest on the second song of every sixth album: the next artist, for Appears On.
+        if n == 2 and int(a["id"][1:]) % 6 == 1:
+            guest = ARTISTS[(ARTISTS.index(a["artist"]) + 1) % len(ARTISTS)]
+            song["artists"] = a["artists"] + [{"id": artist_id(guest), "name": guest}]
+            song["artist"] = f"{a['artist']} feat. {guest}"
         if song["playCount"]:
             song["played"] = "2026-10-30T19:45:00Z"
         out.append(starred(song, song["id"]))
@@ -357,7 +364,9 @@ class Handler(BaseHTTPRequestHandler):
         if endpoint == "search3":
             size, offset = min(int(q.get("songCount", 20)), 500), int(q.get("songOffset", 0))
             query = q.get("query", "").strip('"').lower()
-            every = [s for a in ALBUMS for s in songs(a) if query in s["title"].lower()]
+            # As Navidrome: the title or any of the song's artists.
+            every = [s for a in ALBUMS for s in songs(a)
+                     if query in s["title"].lower() or any(query in r["name"].lower() for r in s["artists"])]
             result = {"song": every[offset:offset + size]}
             # The Songs page lists every song with an empty query and asks for no artists or albums.
             artist_count, album_count = int(q.get("artistCount", 20)), int(q.get("albumCount", 20))
