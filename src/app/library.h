@@ -111,6 +111,8 @@ signals:
     void playlistDeleted(const QString &id);
     // A short confirmation over the player bar ("Added to Road Trip").
     void notice(const QString &text);
+    // The server has recorded listens: its recently and most played have changed.
+    void listensSent();
 
 private:
     // The ids of the songs `kind` and `id` name (see addToPlaylist); `then` runs only on success.

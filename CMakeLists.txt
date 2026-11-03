@@ -32,7 +32,7 @@ endif()
 
 qt_standard_project_setup(REQUIRES 6.9)
 
-set_source_files_properties(qml/Theme.qml qml/Navigation.qml qml/Prefs.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/Theme.qml qml/Navigation.qml qml/Prefs.qml qml/HomeFeed.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # Everything but main(), so the tests load the module the app does.
 qt_add_library(legato STATIC)
@@ -65,6 +65,7 @@ qt_add_qml_module(legato
     qml/GenCover.qml
     qml/GlassPanel.qml
     qml/Glyph.qml
+    qml/HomeFeed.qml
     qml/HomePage.qml
     qml/IconButton.qml
     qml/InfoCard.qml

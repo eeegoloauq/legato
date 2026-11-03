@@ -63,7 +63,8 @@ def album(i):
             "songCount": 2 if kind == "single" else SONGS_PER_ALBUM, "duration": 30 * SONGS_PER_ALBUM,
             "created": f"2026-{1 + i % 12:02d}-{1 + i % 28:02d}T12:00:00Z", "releaseTypes": [kind],
             "playCount": (i * 37) % 23 if i % 4 == 0 else 0, "recordLabels": [{"name": "Fake Records"}],
-            "releaseDate": {"year": 1965 + i % 60, "month": 1 + i % 12, "day": 1 + i % 28}}
+            "releaseDate": {"year": 1965 + i % 60, "month": 1 + i % 12, "day": 1 + i % 28},
+            **({"played": f"2026-10-{1 + i % 28:02d}T20:00:00Z"} if i % 4 == 0 and (i * 37) % 23 else {})}
 
 
 ALBUMS = sorted((album(i) for i in range(ALBUM_COUNT)), key=lambda a: a["name"].lower())
@@ -151,6 +152,8 @@ def album_list(kind):
         return sorted(ALBUMS, key=lambda a: (a["artist"].lower(), a["name"].lower()))
     if kind == "byYear":
         return sorted(ALBUMS, key=lambda a: a["year"], reverse=True)
+    if kind == "recent":
+        return sorted((a for a in ALBUMS if a.get("played")), key=lambda a: a["played"], reverse=True)
     if kind == "frequent":
         return sorted((a for a in ALBUMS if a["playCount"]), key=lambda a: a["playCount"], reverse=True)
     if kind == "random":

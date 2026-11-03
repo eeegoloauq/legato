@@ -118,6 +118,8 @@ struct Playlist {
     QDateTime changed;
     // Navidrome: the user may not change it (another user's public playlist).
     bool readonly = false;
+
+    bool operator==(const Playlist &) const = default;
 };
 
 struct AlbumWithSongs {

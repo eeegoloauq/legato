@@ -76,7 +76,7 @@ Endpoints in use, tested against Navidrome 0.64.1:
 
 | Feature | Endpoint |
 |---|---|
-| Home lists, Albums page | `getAlbumList2` (`newest`, `random`, `frequent`, `alphabeticalByName`, `alphabeticalByArtist`, `byYear` with `fromYear=9999&toYear=0` for newest first) |
+| Home lists, Albums page | `getAlbumList2` (`recent`, `newest`, `random`, `frequent`, `alphabeticalByName`, `alphabeticalByArtist`, `byYear` with `fromYear=9999&toYear=0` for newest first) |
 | Album, artist pages | `getAlbum`, `getArtist`, `getArtists`; artist photos are `getCoverArt` of the artist's `coverArt`, so `getArtistInfo2` is not needed yet |
 | Songs page | `search3` with an empty query, 500 songs a page as the list scrolls; the count from `getScanStatus` |
 | Search | `search3` (3 artists, 4 albums, 5 songs, after a 150 ms pause in typing); up to 3 playlists from the loaded list; the page's own songs are matched locally |

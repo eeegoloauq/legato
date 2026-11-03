@@ -142,8 +142,12 @@ void AlbumList::fetchPage(int offset)
     client()->albumList(m_type, size, offset, guard([this, offset, size](const QList<Album> &page, const QString &error) {
         if (!error.isEmpty())
             return finish(error);
-        // The first page replaces the old list at once, so Random's refresh never shows it empty.
-        if (offset == 0)
+        // The first page replaces the old list at once, so Random's refresh never shows it empty. A
+        // row of Home updates in place: Recently played, asked again after a listen, keeps its
+        // covers and its scroll position where they did not change.
+        if (offset == 0 && m_limit > 0)
+            m_model.sync(page);
+        else if (offset == 0)
             m_model.set(page);
         else
             m_model.append(page);

@@ -14,28 +14,11 @@ ContentPage {
     title: qsTr("Home")
     flickable: view
 
-    AlbumList {
-        id: recent
-
-        type: "newest"
-        limit: 15
-    }
-
-    AlbumList {
-        id: random
-
-        type: "random"
-        limit: 15
-    }
-
-    AlbumList {
-        id: frequent
-
-        type: "frequent"
-        limit: 15
-    }
-
-    Component.onCompleted: Library.loadPlaylists()
+    // The rows are HomeFeed's, kept between visits.
+    readonly property AlbumList played: HomeFeed.played
+    readonly property AlbumList recent: HomeFeed.recent
+    readonly property AlbumList random: HomeFeed.random
+    readonly property AlbumList frequent: HomeFeed.frequent
 
     component AlbumRow: Carousel {
         id: row
@@ -56,6 +39,13 @@ ContentPage {
         bottomMargin: Theme.barHeight + 56
         boundsBehavior: Flickable.StopAtBounds
         pixelAligned: true
+        // Hidden until every row is in, as the pages with details.
+        opacity: HomeFeed.ready ? 1 : 0
+
+        Behavior on opacity {
+            enabled: Theme.animationsOn
+            NumberAnimation { duration: Theme.normalMs; easing.type: Easing.OutCubic }
+        }
 
         Column {
             id: column
@@ -81,37 +71,43 @@ ContentPage {
 
             Text {
                 width: Math.min(parent.width, 640)
-                visible: recent.error !== ""
-                text: qsTr("Could not load your library: %1").arg(recent.error)
+                visible: page.recent.error !== ""
+                text: qsTr("Could not load your library: %1").arg(page.recent.error)
                 color: Theme.text2
                 wrapMode: Text.Wrap
             }
 
             AlbumRow {
-                visible: recent.model.count > 0
+                visible: page.played.model.count > 0
+                title: qsTr("Recently played")
+                model: page.played.model
+            }
+
+            AlbumRow {
+                visible: page.recent.model.count > 0
                 title: qsTr("Recently added")
                 opens: true
-                model: recent.model
+                model: page.recent.model
                 onOpened: Navigation.open({ page: "recent" })
             }
 
             AlbumRow {
-                visible: random.model.count > 0
+                visible: page.random.model.count > 0
                 title: qsTr("Random albums")
-                model: random.model
+                model: page.random.model
 
                 IconButton {
                     glyph: "refresh"
                     tone: Theme.text2
                     tip: qsTr("New random albums")
-                    onClicked: random.reload()
+                    onClicked: page.random.reload()
                 }
             }
 
             AlbumRow {
-                visible: frequent.model.count > 0
+                visible: page.frequent.model.count > 0
                 title: qsTr("Most played")
-                model: frequent.model
+                model: page.frequent.model
             }
 
             Carousel {

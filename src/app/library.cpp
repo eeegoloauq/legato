@@ -108,6 +108,9 @@ void Library::loadPlaylists()
             return;
         for (Playlist &playlist : playlists)
             playlist.readonly = !canEdit(playlist);
+        // Unchanged, the views keep their cards: a reset would build them all again.
+        if (playlists == m_playlists.items())
+            return;
         m_playlists.set(std::move(playlists));
     });
 }
@@ -316,6 +319,8 @@ void Library::submitListens()
         // Kept only while the server is out of reach. One it refuses would refuse them again.
         if (!error.isEmpty())
             qWarning("legato: scrobble: %s", qPrintable(error));
+        if (error.isEmpty())
+            emit listensSent();
         if (error.isEmpty() || answered) {
             m_unsent.erase(m_unsent.begin(), m_unsent.begin() + std::min(sending.size(), m_unsent.size()));
             // A listen counted while these were on the way.

@@ -70,8 +70,15 @@ volume buttons.
 ## Home
 
 - "Home" with a Shuffle button beside it (shuffles the whole library, Ctrl+Shift+S).
-- Rows: Recently added ›, Random albums (with a refresh button), Most played, Playlists ›. Titles
-  with › open the full page. An empty row is left out.
+- Rows: Recently played, Recently added ›, Random albums (with a refresh button), Most played,
+  Playlists ›. Titles with › open the full page. An empty row is left out.
+- Home shows once every row is in, in one fade, never row by row.
+- Nothing on Home moves while it shows. The rows are kept for the session, so Home opens again at
+  once, as it was left. They are asked again only while Home is off screen: Recently played and
+  Most played once the server has recorded a listen, Recently added when Home is left, at most every
+  ten minutes, Random albums only with its button. A listen recorded while Home shows waits until it
+  is left. Nothing is kept on disk: a stale Home on launch would change under the user a moment
+  later.
 
 ## Covers and carousels
 
