@@ -29,7 +29,12 @@ if(WIN32)
     EXCLUDE_PLUGIN_TYPES qmltooling generic networkinformation)
   install(SCRIPT ${deploy})
   install(FILES ${MPV_DIR}/libmpv-2.dll DESTINATION bin)
-  install(IMPORTED_RUNTIME_ARTIFACTS Qt6Keychain::Qt6Keychain RUNTIME DESTINATION bin)
+  # QtKeychain's package names its library through an alias, which install() does not take.
+  get_target_property(keychain Qt6Keychain::Qt6Keychain ALIASED_TARGET)
+  if(NOT keychain)
+    set(keychain Qt6Keychain::Qt6Keychain)
+  endif()
+  install(IMPORTED_RUNTIME_ARTIFACTS ${keychain} RUNTIME DESTINATION bin)
   install(FILES ${controls}/qmldir ${controls}/qtquickcontrols2plugin.dll ${controls}/plugins.qmltypes
     DESTINATION qml/QtQuick/Controls)
 elseif(NOT APPLE)
