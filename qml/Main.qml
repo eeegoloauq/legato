@@ -43,10 +43,89 @@ ApplicationWindow {
         }
     }
 
-    // Routes that back left, newest last, for forward (docs/design.md, "Navigation"). Back pops the
-    // stack, so the page under it returns as it was left; forward builds the page again.
-    property var forwardRoutes: []
+    // The one history for back and forward (docs/design.md, "Navigation"): every page visited,
+    // oldest first, as { route, offset, page, seen }, and `at`, the one showing. Only the pages
+    // seen last stay made (keptPages), so back to them is instant; the others are a route and a
+    // scroll offset and are made again when gone back to. Kept pages wait hidden in `parked`, where a
+    // change of the content's width (the side panel, the window) does not lay them out again
+    // (docs/architecture.md).
+    readonly property int keptPages: 4
+    readonly property int historyLength: 100
+    property var history: []
+    property int at: -1
+    property int seen: 0
+    readonly property bool canGoBack: at > 0
+    readonly property bool canGoForward: at < history.length - 1
     readonly property ContentPage currentPage: pages.currentItem as ContentPage
+
+    // Shows history[at], made again if it was let go.
+    function show(immediate) {
+        const entry = history[at]
+        // A page sized only by the stack drops to its implicit size when it leaves, and one with
+        // none (0) laid its grid out again twice per visit. Made and left at the content's size,
+        // a page is laid out again only if the window changed while it waited.
+        const size = { implicitWidth: pages.width, implicitHeight: pages.height }
+        if (pages.currentItem)
+            Object.assign(pages.currentItem, size)
+        if (!entry.page) {
+            entry.page = pageFor(entry.route).createObject(parked, Object.assign({ route: entry.route }, size))
+            entry.page.restore(entry.offset)
+        }
+        entry.seen = ++seen
+        pages.replace(null, entry.page, {}, immediate ? StackView.Immediate : StackView.Transition)
+        const made = history.filter(other => other.page).sort((a, b) => b.seen - a.seen)
+        for (const old of made.slice(keptPages))
+            release(old)
+    }
+
+    function release(entry) {
+        if (!entry.page)
+            return
+        entry.offset = entry.page.offset()
+        entry.page.destroy()
+        entry.page = null
+    }
+
+    // Before leaving the page showing: where it was scrolled to, for when it is made again.
+    function leave() {
+        const entry = history[at]
+        if (entry && entry.page)
+            entry.offset = entry.page.offset()
+    }
+
+    function open(route) {
+        const page = pageFor(route)
+        if (!page || (currentPage && JSON.stringify(currentPage.route) === JSON.stringify(route)))
+            return
+        leave()
+        // A new page drops what was ahead of the current one, as a browser does, and the oldest
+        // pages past historyLength.
+        const kept = history.slice(0, at + 1)
+        for (const gone of history.slice(at + 1))
+            release(gone)
+        kept.push({ route: route, offset: 0, page: null, seen: 0 })
+        for (const gone of kept.slice(0, Math.max(0, kept.length - historyLength)))
+            release(gone)
+        history = kept.slice(-historyLength)
+        at = history.length - 1
+        show(history.length === 1)
+    }
+
+    function back() {
+        if (!canGoBack || pages.busy)
+            return
+        leave()
+        at = at - 1
+        show(false)
+    }
+
+    function forward() {
+        if (!canGoForward || pages.busy)
+            return
+        leave()
+        at = at + 1
+        show(false)
+    }
 
     function pageFor(route) {
         return {
@@ -65,29 +144,6 @@ ApplicationWindow {
             return null
         const colon = value.indexOf(":")
         return colon < 0 ? { page: value } : { page: value.slice(0, colon), id: value.slice(colon + 1) }
-    }
-
-    function open(route) {
-        const page = pageFor(route)
-        if (!page || (currentPage && JSON.stringify(currentPage.route) === JSON.stringify(route)))
-            return
-        forwardRoutes = []
-        pages.push(page, { route: route })
-    }
-
-    function back() {
-        if (pages.depth < 2 || pages.busy)
-            return
-        forwardRoutes = forwardRoutes.concat([currentPage.route])
-        pages.pop()
-    }
-
-    function forward() {
-        if (forwardRoutes.length === 0 || pages.busy)
-            return
-        const route = forwardRoutes[forwardRoutes.length - 1]
-        forwardRoutes = forwardRoutes.slice(0, -1)
-        pages.push(pageFor(route), { route: route })
     }
 
     width: 1280
@@ -123,6 +179,7 @@ ApplicationWindow {
 
     Component.onCompleted: {
         Session.start()
+        open({ page: "home" })
         if (startRoute)
             open(startRoute)
     }
@@ -222,7 +279,6 @@ ApplicationWindow {
                 id: pages
 
                 anchors.fill: parent
-                initialItem: homePage
                 focus: true
                 // Carousels slide out of view at the content's edge, not over the sidebar or the panel.
                 clip: true
@@ -230,10 +286,16 @@ ApplicationWindow {
 
                 // The old page goes at once and the new one fades in over the background. A crossfade
                 // showed both pages at half strength, one through the other.
-                pushEnter: Transition { NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Theme.fastMs } }
-                pushExit: Transition { PropertyAction { property: "opacity"; value: 0 } }
-                popEnter: Transition { NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Theme.fastMs } }
-                popExit: Transition { PropertyAction { property: "opacity"; value: 0 } }
+                // The stack holds only the page showing; Main keeps the history (window.show).
+                replaceEnter: Transition { NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Theme.fastMs } }
+                replaceExit: Transition { PropertyAction { property: "opacity"; value: 0 } }
+            }
+
+            // The pages the history keeps made while they do not show (window.keptPages).
+            Item {
+                id: parked
+
+                visible: false
             }
 
             UnreachableView {
@@ -257,8 +319,8 @@ ApplicationWindow {
                     return view !== null && view.contentY - view.originY > Theme.headerHeight - 8
                 }
                 leftInset: window.sidebarSpace ? 20 : sidebarButton.x + sidebarButton.width + 8
-                canGoBack: pages.depth > 1
-                canGoForward: window.forwardRoutes.length > 0
+                canGoBack: window.canGoBack
+                canGoForward: window.canGoForward
                 onBackRequested: window.back()
                 onForwardRequested: window.forward()
                 onActionRequested: name => {

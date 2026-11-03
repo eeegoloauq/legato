@@ -44,9 +44,14 @@ module the app does. The executable is made in `src/`, a directory without QML, 
 The QML is a view. It calls `Session`, `Library` and `Player` (sign in, play, seek, enqueue) and
 binds to their properties. `Session` owns the server list and the passwords and hands `Library` the
 active server's credentials; a switch stops playback and every page reloads from the new server,
-dropping answers still on the way from the old one. Pages live in a `StackView` in `Main.qml` with
-one history for back and forward; each page is a `ContentPage` that names its title and its
-scrolling view, and anything can open a page through the `Navigation` singleton. Network access,
+dropping answers still on the way from the old one. `Main.qml` keeps one history for back and
+forward, as routes with a scroll offset (at most 100), and shows its current page in a `StackView`
+that holds only that page. The four pages seen last stay made, hidden outside the stack, so a change
+of the content's width lays out only the page showing; an older one is made again from its route
+and scrolls back to its offset as its rows arrive. Every visited page used to stay made: a long
+session held 80 grids and over 1 GB, and opening the side panel laid them all out again for seconds.
+Each page is a `ContentPage` that names its title and its scrolling view, and anything can open a
+page through the `Navigation` singleton. Network access,
 playback, decoding and caching happen in C++, off the GUI thread where they could stall a frame.
 
 Each library page declares the data it shows: `AlbumDetails { albumId: ... }`,
