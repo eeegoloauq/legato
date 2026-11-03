@@ -10,20 +10,9 @@ A simple music player for Navidrome and other OpenSubsonic servers, with smooth 
 
 ## Install
 
-Take the file for your system from the [latest release](https://github.com/eeegoloauq/legato/releases/latest).
-
-    sudo dnf install ./legato-<version>-1.fc44.x86_64.rpm          # Fedora
-    sudo pacman -U ./legato-<version>-1-x86_64.pkg.tar.zst         # Arch
-
-On Windows, run `legato-<version>-windows-x86_64-setup.exe`. It installs for your account, without
-administrator rights.
-
-Elsewhere on Linux, install your distribution's libmpv and QtKeychain for Qt 6, unpack the tarball
-and run `legato.sh`.
-
-Legato asks for your server's address, username and password at the first start. With "Keep me
-signed in" the password goes to the system keychain (GNOME Keyring, KWallet, KeePassXC, the Windows
-Credential Manager).
+Download the RPM, Arch package, Windows installer or tarball from the
+[latest release](https://github.com/eeegoloauq/legato/releases/latest). The tarball needs your
+distribution's libmpv and QtKeychain for Qt 6.
 
 ## Features
 
