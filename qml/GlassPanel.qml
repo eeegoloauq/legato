@@ -15,10 +15,28 @@ Item {
 
     readonly property real padding: Theme.glassBlur * (1 + Theme.glassBlurMultiplier) / 2
     readonly property bool blurring: Theme.blurOn && visible
-    // The panel's position in the source. Re-read when either moves or resizes.
-    readonly property point origin: {
-        void [x, y, width, height, source.x, source.y, source.width, source.height]
-        return mapToItem(source, 0, 0)
+    // The panel's position in the source. A binding would see only the panel's own x and y, which
+    // stay at zero inside a parent that moves (the player bar, a menu), so it is read again before
+    // every frame.
+    property point origin: Qt.point(0, 0)
+
+    function locate() {
+        if (!source)
+            return
+        const p = mapToItem(source, 0, 0)
+        if (p.x !== origin.x || p.y !== origin.y)
+            origin = p
+    }
+
+    Component.onCompleted: locate()
+
+    Connections {
+        target: panel.Window.window
+        enabled: panel.blurring
+
+        function onAfterAnimating() {
+            panel.locate()
+        }
     }
 
     ShaderEffectSource {
