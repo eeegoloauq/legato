@@ -66,6 +66,25 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="0.1.1" date="2026-11-03">
+      <description>
+        <ul>
+          <li>Create, edit and delete playlists</li>
+          <li>Search in the header, with the songs of the page you are on first</li>
+          <li>Recently played on Home, play counts on album pages, genres and plays in Get Info,
+            Appears On for artists</li>
+          <li>Glass menus, a Transparency setting and a darker background</li>
+          <li>Automatic crossfade by default</li>
+          <li>In a narrow window the sidebar opens over the content</li>
+          <li>Opening the queue no longer freezes the app after browsing for a while, and memory
+            stays flat in long sessions</li>
+          <li>Home opens faster</li>
+          <li>Fixes: Esc leaves the full-screen player, the window moves only from empty
+            background, cover colors keep text readable, the player bar's glass blurs what is
+            under it</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.0" date="2026-11-03">
       <description>
         <p>The first release.</p>
