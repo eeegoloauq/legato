@@ -27,6 +27,7 @@ Item {
     required property int track
     required property int discHeader
     required property bool starred
+    required property int playCount
 
     property SongModel songs
     // The row in `songs`, which differs from `index` while a find filters the list.
@@ -166,7 +167,7 @@ Item {
         Column {
             anchors.left: cover.right
             anchors.leftMargin: cover.visible ? 12 : 14
-            anchors.right: albumColumn.visible ? albumColumn.left : time.left
+            anchors.right: albumColumn.visible ? albumColumn.left : plays.visible ? plays.left : time.left
             anchors.rightMargin: 14
             anchors.verticalCenter: parent.verticalCenter
             spacing: 1
@@ -215,6 +216,40 @@ Item {
                 enabled: songRow.albumId !== ""
                 onTapped: Navigation.album(songRow.albumId)
             }
+        }
+
+        // How often the listener played the song, from the server's count of scrobbles: on an
+        // album's page, as streaming apps show plays there. Nothing for a song never played.
+        Row {
+            id: plays
+
+            anchors.right: time.left
+            anchors.rightMargin: 10
+            anchors.verticalCenter: parent.verticalCenter
+            visible: songRow.mode === "album" && songRow.playCount > 0
+            spacing: 3
+
+            Glyph {
+                anchors.verticalCenter: parent.verticalCenter
+                name: "play_arrow"
+                size: 12
+                color: Theme.text3
+            }
+
+            Text {
+                text: songRow.playCount.toLocaleString(Qt.locale(), "f", 0)
+                color: Theme.text3
+                font.pixelSize: Theme.fsSmall
+                font.features: { "tnum": 1 }
+            }
+
+            HoverHandler {
+                id: playsHover
+            }
+
+            ToolTip.text: qsTr("Played %n time(s)", "", songRow.playCount)
+            ToolTip.visible: playsHover.hovered
+            ToolTip.delay: 600
         }
 
         Text {

@@ -348,6 +348,13 @@ class Handler(BaseHTTPRequestHandler):
         if endpoint == "scrobble":
             # Printed, so a test run can check what legato reported.
             print("scrobble", q.get("submission"), all_q.get("id", []), all_q.get("time", []), flush=True)
+            # A listen counts, as on Navidrome: Most played and Recently played follow it.
+            if q.get("submission", "true") != "false":
+                for song_id in all_q.get("id", []):
+                    a = BY_ID.get(song_id.rsplit("-s", 1)[0])
+                    if a:
+                        a["playCount"] += 1
+                        a["played"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             return self.api()
         if endpoint == "getOpenSubsonicExtensions":
             return self.api({"openSubsonicExtensions": [{"name": "formPost", "versions": [1]},

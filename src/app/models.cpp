@@ -119,6 +119,8 @@ QVariant SongModel::data(const QModelIndex &index, int role) const
         return subsonic::qualityLabel(song);
     case StarredRole:
         return song.starred;
+    case PlayCountRole:
+        return song.playCount;
     }
     return {};
 }
@@ -129,7 +131,8 @@ QHash<int, QByteArray> SongModel::roleNames() const
             {ArtistIdRole, "artistId"}, {ArtistsRole, "artists"}, {AlbumRole, "album"},
             {AlbumIdRole, "albumId"}, {CoverArtRole, "coverArt"}, {DurationRole, "duration"},
             {TrackRole, "track"},    {DiscRole, "disc"},         {DiscHeaderRole, "discHeader"},
-            {YearRole, "year"},      {QualityRole, "quality"},   {StarredRole, "starred"}};
+            {YearRole, "year"},      {QualityRole, "quality"},   {StarredRole, "starred"},
+            {PlayCountRole, "playCount"}};
 }
 
 void SongModel::setStarred(const QString &id, bool starred)
