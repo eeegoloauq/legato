@@ -29,12 +29,25 @@ Item {
     property double asked: 0
     // The layer shown; the other one loads the next cover in crossfade mode.
     property Layer front: first
-    readonly property Layer back: front === first ? second : first
+    // A crossfade cut short (Next during a mix) leaves its cover half faded in, where it is, and the
+    // next cover fades in over both: dropping it would bring back the song before. It needs a third
+    // layer, made only in crossfade mode: grids hold many of these.
+    property Layer frozen: null
+    readonly property Layer back: [first, second, third.item as Layer].find(layer => layer && layer !== front && layer !== frozen)
+
+    function release(layer) {
+        if (!layer)
+            return
+        layer.opacity = 0
+        layer.source = ""
+    }
 
     // Runs after a change of cover has started loading, so a cover that was already decoded (Ready
     // at once) is seen as ready.
     function settle() {
         if (!crossfade || front.opacity === 0 || wanted === "") {
+            release(frozen)
+            frozen = null
             if (!back.holds("")) {
                 back.opacity = 0
                 back.source = ""
@@ -57,18 +70,25 @@ Item {
         if (front.holds(wanted)) {
             if (fade.target === back)
                 fade.stop()
-            back.opacity = 0
-            back.source = ""
+            release(back)
+            release(frozen)
+            frozen = null
             return
         }
         if (!back.holds(wanted)) {
             if (fade.target === back)
                 fade.stop()
+            if (back.opacity > 0 && third.item) {
+                // Twice cut short: the older half-faded cover goes.
+                release(frozen)
+                frozen = back
+                frozen.z = 1
+            }
             back.opacity = 0
             back.source = wanted
         }
         if (back.ready && back.opacity === 0) {
-            back.z = 1
+            back.z = 2
             front.z = 0
             show(back)
         }
@@ -136,6 +156,16 @@ Item {
         visible: root.front.opacity < 1 && root.back.opacity < 1
     }
 
+    Loader {
+        id: third
+
+        anchors.fill: parent
+        // Stacks as its layer does: z is set on the layer, which sits inside the loader.
+        z: item ? (item as Item).z : 0
+        active: root.crossfade
+        sourceComponent: Layer {}
+    }
+
     Layer {
         id: first
     }
@@ -156,9 +186,11 @@ Item {
             const layer = target as Layer
             if (layer && layer !== root.front) {
                 const old = root.front
+                const frozen = root.frozen
+                root.frozen = null
                 root.front = layer
-                old.opacity = 0
-                old.source = ""
+                root.release(old)
+                root.release(frozen)
             }
         }
     }
