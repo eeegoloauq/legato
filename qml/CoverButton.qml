@@ -9,6 +9,8 @@ Button {
 
     property string glyph
     property bool shown: false
+    // False until made, so a button made under the pointer fades in like the others.
+    property bool made: false
     // Play is the cover's main action: larger than "…", and dark enough to show on a pale cover.
     readonly property bool primary: glyph === "play_arrow"
 
@@ -16,7 +18,7 @@ Button {
     height: width
     padding: 0
     visible: opacity > 0
-    opacity: shown || hovered || visualFocus ? 1 : 0
+    opacity: made && (shown || hovered || visualFocus) ? 1 : 0
     focusPolicy: Qt.TabFocus
     display: AbstractButton.IconOnly
     icon.source: Theme.icon(glyph)
@@ -27,6 +29,8 @@ Button {
     Behavior on opacity {
         NumberAnimation { duration: Theme.hoverMs }
     }
+
+    Component.onCompleted: made = true
 
     background: Item {
         RectangularShadow {

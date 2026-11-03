@@ -20,25 +20,24 @@ ContentPage {
     readonly property AlbumList random: HomeFeed.random
     readonly property AlbumList frequent: HomeFeed.frequent
 
-    component AlbumRow: Carousel {
-        id: row
-
-        width: parent ? parent.width : 0
-        delegate: AlbumCard {
-            coverSize: row.coverSize
-        }
-    }
-
-    Flickable {
+    // The rows as a ListView of shelves, as lumeo's Home: a row is built when it comes near the
+    // screen, so opening Home builds only the rows that show, and the ones below are built after
+    // it, in the background. A few screens of rows stay built, so a row scrolled sideways is where
+    // it was on the way back up.
+    ListView {
         id: view
 
         anchors.fill: parent
         anchors.leftMargin: Theme.gutter
         anchors.rightMargin: Theme.gutter
-        contentHeight: column.height
         bottomMargin: Theme.barHeight + 56
         boundsBehavior: Flickable.StopAtBounds
         pixelAligned: true
+        keyNavigationEnabled: false
+        // No current row, which would take the keyboard as the page opens.
+        currentIndex: -1
+        cacheBuffer: 3000
+        model: ["played", "recent", "random", "frequent", "playlists"]
         // Hidden until every row is in, as the pages with details.
         opacity: HomeFeed.ready ? 1 : 0
 
@@ -47,15 +46,12 @@ ContentPage {
             NumberAnimation { duration: Theme.normalMs; easing.type: Easing.OutCubic }
         }
 
-        Column {
-            id: column
-
+        header: Column {
             width: view.width
-            spacing: 36
 
             PageHeading {
                 text: qsTr("Home")
-                // The heading's own bottom gap and the column's spacing would add up.
+                // The heading's own bottom gap and the gap above a row would add up.
                 height: implicitHeight - 20
 
                 PushButton {
@@ -71,56 +67,79 @@ ContentPage {
 
             Text {
                 width: Math.min(parent.width, 640)
+                topPadding: 36
                 visible: page.recent.error !== ""
                 text: qsTr("Could not load your library: %1").arg(page.recent.error)
                 color: Theme.text2
                 wrapMode: Text.Wrap
             }
+        }
 
-            AlbumRow {
-                visible: page.played.model.count > 0
-                title: qsTr("Recently played")
-                model: page.played.model
-            }
+        delegate: Item {
+            id: slot
 
-            AlbumRow {
-                visible: page.recent.model.count > 0
-                title: qsTr("Recently added")
-                opens: true
-                model: page.recent.model
-                onOpened: Navigation.open({ page: "recent" })
-            }
+            required property string modelData
+            readonly property Item row: loader.item as Item
+            readonly property real gap: 36
 
-            AlbumRow {
-                visible: page.random.model.count > 0
-                title: qsTr("Random albums")
-                model: page.random.model
+            width: view.width
+            // An empty row takes no room.
+            height: row && row.visible ? row.height + gap : 0
 
-                IconButton {
-                    glyph: "refresh"
-                    tone: Theme.text2
-                    tip: qsTr("New random albums")
-                    onClicked: page.random.reload()
-                }
-            }
+            Loader {
+                id: loader
 
-            AlbumRow {
-                visible: page.frequent.model.count > 0
-                title: qsTr("Most played")
-                model: page.frequent.model
-            }
-
-            Carousel {
-                id: playlists
-
+                y: slot.gap
                 width: parent.width
-                visible: Library.playlists.count > 0
-                title: qsTr("Playlists")
-                opens: true
-                model: Library.playlists
-                onOpened: Navigation.open({ page: "playlists" })
-                delegate: PlaylistCard {
-                    coverSize: playlists.coverSize
+                sourceComponent: slot.modelData === "playlists" ? playlistRow : albumRow
+
+                Component {
+                    id: albumRow
+
+                    Carousel {
+                        id: carousel
+
+                        readonly property AlbumList albums: ({
+                            played: page.played, recent: page.recent, random: page.random, frequent: page.frequent
+                        })[slot.modelData]
+
+                        visible: albums.model.count > 0
+                        title: ({
+                            played: qsTr("Recently played"), recent: qsTr("Recently added"),
+                            random: qsTr("Random albums"), frequent: qsTr("Most played")
+                        })[slot.modelData]
+                        opens: slot.modelData === "recent"
+                        model: albums.model
+                        onOpened: Navigation.open({ page: "recent" })
+                        delegate: AlbumCard {
+                            coverSize: carousel.coverSize
+                        }
+
+                        IconButton {
+                            visible: slot.modelData === "random"
+                            glyph: "refresh"
+                            tone: Theme.text2
+                            tip: qsTr("New random albums")
+                            onClicked: page.random.reload()
+                        }
+                    }
+                }
+
+                Component {
+                    id: playlistRow
+
+                    Carousel {
+                        id: playlists
+
+                        visible: Library.playlists.count > 0
+                        title: qsTr("Playlists")
+                        opens: true
+                        model: Library.playlists
+                        onOpened: Navigation.open({ page: "playlists" })
+                        delegate: PlaylistCard {
+                            coverSize: playlists.coverSize
+                        }
+                    }
                 }
             }
         }

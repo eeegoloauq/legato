@@ -17,12 +17,18 @@ Item {
     required property bool editable
     property real coverSize: 180
     property bool keyFocus: false
+    // The play button is made the first time it is wanted, as on an album's card.
+    property bool buttonMade: false
+
+    onKeyFocusChanged: if (keyFocus) buttonMade = true
 
     width: GridView.view ? GridView.view.cellWidth : coverSize
     height: GridView.view ? GridView.view.cellHeight : coverSize + 66
 
     HoverHandler {
         id: hover
+
+        onHoveredChanged: if (hovered) card.buttonMade = true
     }
 
     Item {
@@ -92,13 +98,20 @@ Item {
             }
         }
 
-        CoverButton {
-            x: 8
-            y: parent.height - height - 8
-            glyph: "play_arrow"
-            shown: (hover.hovered || card.keyFocus) && card.songCount > 0
-            Accessible.name: qsTr("Play %1").arg(card.name)
-            onClicked: Library.playPlaylist(card.playlistId)
+        Loader {
+            anchors.fill: parent
+            active: card.buttonMade
+
+            sourceComponent: Item {
+                CoverButton {
+                    x: 8
+                    y: parent.height - height - 8
+                    glyph: "play_arrow"
+                    shown: (hover.hovered || card.keyFocus) && card.songCount > 0
+                    Accessible.name: qsTr("Play %1").arg(card.name)
+                    onClicked: Library.playPlaylist(card.playlistId)
+                }
+            }
         }
     }
 

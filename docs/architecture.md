@@ -232,6 +232,13 @@ server's ids never form a path. `CoverProvider` serves `image://cover/<id>` to Q
 center-crops on a worker thread at exactly the size the image is shown, so the GPU never scales
 covers and scrolling never decodes on the GUI thread.
 
+Views build only what shows. Grids and carousels are item views, and Home is a ListView of rows (as
+lumeo's shelves), so a row is built when it comes near the screen and the ones below are built after
+it, in the background (`cacheBuffer`). A cover card is light: its play and "…" buttons are made on
+the first hover or keyboard choice, and its image has the one layer it needs unless it crossfades
+(the player bar, the full-screen player). Home as a Column of rows built some sixty cards in the
+frame it opened, a pause of 100-200 ms.
+
 The accent color of the playing song (progress line, primary buttons, full-screen background) comes
 from `src/core/palette.*`: three prominent colors of the cover, and a version of the first that
 reads as text on the light or dark background (WCAG 4.5:1, measured as relative luminance: HSL

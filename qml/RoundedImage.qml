@@ -31,9 +31,10 @@ Item {
     property Layer front: first
     // A crossfade cut short (Next during a mix) leaves its cover half faded in, where it is, and the
     // next cover fades in over both: dropping it would bring back the song before. It needs a third
-    // layer, made only in crossfade mode: grids hold many of these.
+    // layer. The second and third layers are made only in crossfade mode: grids hold many of these,
+    // and without a crossfade a new cover simply replaces the old one in the first.
     property Layer frozen: null
-    readonly property Layer back: [first, second, third.item as Layer].find(layer => layer && layer !== front && layer !== frozen)
+    readonly property Layer back: [first, second.item as Layer, third.item as Layer].find(layer => layer && layer !== front && layer !== frozen) ?? null
 
     function release(layer) {
         if (!layer)
@@ -48,7 +49,7 @@ Item {
         if (!crossfade || front.opacity === 0 || wanted === "") {
             release(frozen)
             frozen = null
-            if (!back.holds("")) {
+            if (back && !back.holds("")) {
                 back.opacity = 0
                 back.source = ""
             }
@@ -153,7 +154,7 @@ Item {
         anchors.fill: parent
         radius: root.radius
         color: root.placeholder
-        visible: root.front.opacity < 1 && root.back.opacity < 1
+        visible: root.front.opacity < 1 && (!root.back || root.back.opacity < 1)
     }
 
     Loader {
@@ -170,8 +171,13 @@ Item {
         id: first
     }
 
-    Layer {
+    Loader {
         id: second
+
+        anchors.fill: parent
+        z: item ? (item as Item).z : 0
+        active: root.crossfade
+        sourceComponent: Layer {}
     }
 
     NumberAnimation {

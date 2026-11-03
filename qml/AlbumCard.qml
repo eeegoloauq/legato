@@ -23,6 +23,13 @@ Item {
     property real coverSize: 180
     // Chosen with the arrow keys: a ring around the cover, and Enter opens it.
     property bool keyFocus: false
+    // The play and "…" buttons are made the first time they are wanted: a page of covers builds
+    // without them, and Home opened with a pause of 100-200 ms while it made sixty.
+    readonly property bool buttonsWanted: hover.hovered || keyFocus || menu.active
+    property bool buttonsMade: false
+    property Item moreButton: null
+
+    onButtonsWantedChanged: if (buttonsWanted) buttonsMade = true
 
     width: GridView.view ? GridView.view.cellWidth : coverSize
     height: GridView.view ? GridView.view.cellHeight : coverSize + 66
@@ -79,27 +86,35 @@ Item {
             onTapped: Navigation.album(card.albumId)
         }
 
-        CoverButton {
-            x: 8
-            y: parent.height - height - 8
-            glyph: "play_arrow"
-            shown: hover.hovered || card.keyFocus
-            Accessible.name: qsTr("Play %1").arg(card.name)
-            onClicked: Library.playAlbum(card.albumId)
-        }
+        Loader {
+            anchors.fill: parent
+            active: card.buttonsMade
 
-        CoverButton {
-            id: more
+            sourceComponent: Item {
+                CoverButton {
+                    x: 8
+                    y: parent.height - height - 8
+                    glyph: "play_arrow"
+                    shown: hover.hovered || card.keyFocus
+                    Accessible.name: qsTr("Play %1").arg(card.name)
+                    onClicked: Library.playAlbum(card.albumId)
+                }
 
-            x: parent.width - width - 8
-            // Centered on the larger play button's line.
-            y: parent.height - 8 - 20 - height / 2
-            glyph: "more_horiz"
-            shown: hover.hovered || menu.active
-            Accessible.name: qsTr("More for %1").arg(card.name)
-            onClicked: {
-                menu.fromMore = true
-                menu.active = true
+                CoverButton {
+                    id: more
+
+                    x: parent.width - width - 8
+                    // Centered on the larger play button's line.
+                    y: parent.height - 8 - 20 - height / 2
+                    glyph: "more_horiz"
+                    shown: hover.hovered || menu.active
+                    Accessible.name: qsTr("More for %1").arg(card.name)
+                    Component.onCompleted: card.moreButton = more
+                    onClicked: {
+                        menu.fromMore = true
+                        menu.active = true
+                    }
+                }
             }
         }
 
@@ -112,7 +127,7 @@ Item {
             property point at
 
             active: false
-            onLoaded: fromMore ? (item as AlbumMenu).openFrom(more) : (item as AlbumMenu).openAt(card, at.x, at.y)
+            onLoaded: fromMore ? (item as AlbumMenu).openFrom(card.moreButton) : (item as AlbumMenu).openAt(card, at.x, at.y)
             sourceComponent: AlbumMenu {
                 albumId: card.albumId
                 name: card.name
