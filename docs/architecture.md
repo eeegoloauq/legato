@@ -218,6 +218,11 @@ every 10 s) asks again and takes a newer queue saved elsewhere meanwhile.
   `io.github.eeegoloauq.legato`: the Wayland app id, the `.desktop` file and the AppStream id.
 - Settings live in `~/.config/legato/settings.conf`, caches (covers, crossfade levels, lyrics) in
   `~/.cache/legato/`; on Windows both under `%LOCALAPPDATA%\legato`.
+- The caches take at most 512 MB together (`src/core/diskcache.*`). A minute after the start and
+  every six hours, the least recently used files go; a file's modification time is its last use,
+  set when it is read (at most once a day per file, so scrolling does not write to the disk). Only
+  `covers/`, `mix/` and `lyrics/` are trimmed: the cache directory also holds Qt's shader caches,
+  and on Windows the settings.
 - Linux cannot blur behind a window, so the sidebar is solid. The glass (header, player bar, menus,
   the search's results, the notice) blurs Legato's own content, which works everywhere
   (`qml/GlassPanel.qml`). A panel finds where it is in what it blurs before every frame: a binding

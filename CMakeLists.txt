@@ -158,6 +158,7 @@ qt_add_qml_module(legato
   SOURCES
     src/core/subsonic.h src/core/subsonic.cpp
     src/core/coverstore.h src/core/coverstore.cpp
+    src/core/diskcache.h src/core/diskcache.cpp
     src/core/palette.h src/core/palette.cpp
     src/core/crossfade.h src/core/crossfade.cpp
     src/core/automix.h src/core/automix.cpp

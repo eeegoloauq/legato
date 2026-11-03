@@ -1,5 +1,6 @@
 #include "lyricsfinder.h"
 
+#include "diskcache.h"
 #include "lrclib.h"
 
 #include <QCoreApplication>
@@ -69,6 +70,7 @@ void LyricsFinder::find(const Song &song, std::function<void(const Lyrics &)> do
     }
 
     if (QFile file(cachePath(song)); file.open(QIODevice::ReadOnly)) {
+        diskcache::markUsed(file.fileName());
         const QJsonObject entry = QJsonDocument::fromJson(file.readAll()).object();
         if (entry.contains("record"_L1)) {
             done(lrclib::parseRecord(entry.value("record"_L1).toObject()).lyrics);

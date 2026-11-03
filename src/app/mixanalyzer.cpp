@@ -1,5 +1,7 @@
 #include "mixanalyzer.h"
 
+#include "diskcache.h"
+
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDir>
@@ -212,6 +214,7 @@ automix::Part MixAnalyzer::readCache(const QString &songId, Part part) const
     QFile file(cachePath(songId, part));
     if (file.fileName().isEmpty() || !file.open(QIODevice::ReadOnly))
         return {};
+    diskcache::markUsed(file.fileName());
     const QByteArray bytes = file.readAll();
     if (bytes.size() < 3 || bytes.at(0) != CacheFormat || (bytes.size() - 1) % 2 != 0)
         return {};

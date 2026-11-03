@@ -1,5 +1,6 @@
 #include "coverstore.h"
 
+#include "diskcache.h"
 #include "subsonic.h"
 
 #include <QCryptographicHash>
@@ -67,8 +68,10 @@ void CoverStore::load(const QString &id, int size, Cancelled cancelled, Done don
         if (cancelled && *cancelled)
             return done({}, u"cancelled"_s);
         QFile file(pathFor(id, size));
-        if (file.open(QIODevice::ReadOnly))
+        if (file.open(QIODevice::ReadOnly)) {
+            diskcache::markUsed(file.fileName());
             return done(file.readAll(), {});
+        }
         QMetaObject::invokeMethod(this, [this, id, size, waiter = Waiter{std::move(cancelled), std::move(done)}]() mutable {
             download(id, size, std::move(waiter));
         }, Qt::QueuedConnection);

@@ -31,10 +31,6 @@ Everything in scope above, on Linux (tarball, RPM, Arch package) and Windows (in
 - A streaming quality setting (Opus, MP3) for slow connections.
 - Flatpak on Flathub, once its KDE runtime has Qt 6.12.
 - macOS.
-- A size limit for the disk caches under `~/.cache/legato/` (covers, crossfade levels, lyrics),
-  which grow with every album shown and song played and are never cleaned. Remove the least
-  recently used files over the limit, as lumeo's artwork cache does (`core/internal/api/artwork.go`
-  in lumeo: 512 MB, a file's mtime set on each use).
 
 ## Experiments
 

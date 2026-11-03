@@ -1,6 +1,7 @@
 #include "library.h"
 
 #include "coverstore.h"
+#include "diskcache.h"
 #include "instantmix.h"
 #include "lyricsfinder.h"
 #include "player.h"
@@ -9,16 +10,21 @@
 
 #include <QCoreApplication>
 #include <QDateTime>
+#include <QLoggingCategory>
 #include <QNetworkAccessManager>
 #include <QRandomGenerator>
 #include <QSet>
 #include <QStandardPaths>
+#include <QThreadPool>
+#include <QTimer>
 
 using namespace Qt::Literals::StringLiterals;
 
 namespace legato {
 
 namespace {
+
+Q_LOGGING_CATEGORY(lcCache, "legato.cache", QtInfoMsg)
 
 // Listens kept for a server that does not answer; the oldest go first.
 constexpr int MaxUnsent = 200;
@@ -40,6 +46,16 @@ QString lyricsRoot()
     return QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/lyrics"_L1;
 }
 
+// Only the caches' own folders: the cache directory also holds Qt's shader caches, and on Windows
+// it is the settings' directory too.
+void trimCaches()
+{
+    QThreadPool::globalInstance()->start([roots = QStringList{coverRoot(), mixRoot(), lyricsRoot()}] {
+        if (const qint64 removed = diskcache::trim(roots))
+            qCInfo(lcCache, "removed %lld MB of least recently used files", removed >> 20);
+    });
+}
+
 } // namespace
 
 Library::Library(QObject *parent)
@@ -50,6 +66,13 @@ Library::Library(QObject *parent)
     , m_covers(new CoverStore(m_client, coverRoot(), this))
     , m_lyrics(new LyricsFinder(m_network, lyricsRoot(), this))
 {
+    // A minute after the start, out of the way of the first pages' covers, then every few hours for
+    // a player left open for days.
+    QTimer::singleShot(std::chrono::minutes(1), this, trimCaches);
+    auto *trimming = new QTimer(this);
+    trimming->setInterval(std::chrono::hours(6));
+    connect(trimming, &QTimer::timeout, this, trimCaches);
+    trimming->start();
 }
 
 Library::~Library() = default;

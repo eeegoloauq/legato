@@ -1,7 +1,7 @@
 find_package(Qt6 REQUIRED COMPONENTS Test)
 
 # One executable per file under QtTest, linked against the module the app loads.
-foreach(name subsonic iteminfo lrclib palette crossfade automix instantmix playqueue scrobbletracker serverlist keychain models)
+foreach(name subsonic diskcache iteminfo lrclib palette crossfade automix instantmix playqueue scrobbletracker serverlist keychain models)
   qt_add_executable(${name}_test ${name}_test.cpp)
   target_link_libraries(${name}_test PRIVATE legato Qt6::Test)
   add_test(NAME ${name} COMMAND ${name}_test)
