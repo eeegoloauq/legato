@@ -92,7 +92,8 @@ Item {
             id: more
 
             x: parent.width - width - 8
-            y: parent.height - height - 8
+            // Centered on the larger play button's line.
+            y: parent.height - 8 - 20 - height / 2
             glyph: "more_horiz"
             shown: hover.hovered || menu.active
             Accessible.name: qsTr("More for %1").arg(card.name)

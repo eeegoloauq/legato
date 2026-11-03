@@ -78,7 +78,8 @@ volume buttons.
 - Placeholders are a neutral fill; a cover fades in once decoded. A cover that changes in place (the
   player bar, the full-screen player) crossfades from the old one.
 - Carousels have arrow buttons at their edges on hover and no scroll bar.
-- Hover lifts a cover and shows a play button and "…".
+- Hover lifts a cover and shows a play button (40 px) and a smaller "…" (32 px), dark enough to show
+  on a pale cover.
 - Playlists without artwork get a generated cover: soft blurred color blobs with the name in white,
   drifting on the playlist page and in the full-screen player.
 
