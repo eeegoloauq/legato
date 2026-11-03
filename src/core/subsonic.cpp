@@ -135,8 +135,8 @@ QDateTime parseDate(const QJsonValue &value)
     return QDateTime::fromString(value.toString(), Qt::ISODateWithMs);
 }
 
-// OpenSubsonic's genres joined, or the classic genre.
-QString parseGenres(const QJsonObject &o)
+// OpenSubsonic's genres, in the server's order, else the classic genre.
+QStringList parseGenres(const QJsonObject &o)
 {
     QStringList names;
     for (const QJsonValue &value : o.value("genres"_L1).toArray()) {
@@ -144,7 +144,10 @@ QString parseGenres(const QJsonObject &o)
         if (!name.isEmpty() && !names.contains(name))
             names.append(name);
     }
-    return names.isEmpty() ? o.value("genre"_L1).toString().trimmed() : names.join(", "_L1);
+    const QString classic = o.value("genre"_L1).toString().trimmed();
+    if (names.isEmpty() && !classic.isEmpty())
+        names.append(classic);
+    return names;
 }
 
 // OpenSubsonic's ItemDate: {year, month, day}. Invalid unless it has all three: a year alone is
@@ -180,7 +183,7 @@ Album parseAlbumObject(const QJsonObject &o)
     album.year = o.value("year"_L1).toInt();
     album.artistId = o.value("artistId"_L1).toString();
     album.artists = parseArtistRefs(o, "artists"_L1);
-    album.genre = parseGenres(o);
+    album.genres = parseGenres(o);
     album.songCount = o.value("songCount"_L1).toInt();
     album.duration = o.value("duration"_L1).toInt();
     album.playCount = o.value("playCount"_L1).toInt();
@@ -239,7 +242,7 @@ QList<Song> parseSongs(const QJsonValue &list, const QString &fallbackCover = {}
         song.size = o.value("size"_L1).toInteger();
         song.playCount = o.value("playCount"_L1).toInt();
         song.comment = o.value("comment"_L1).toString().trimmed();
-        song.genre = parseGenres(o);
+        song.genres = parseGenres(o);
         song.created = parseDate(o.value("created"_L1));
         song.played = parseDate(o.value("played"_L1));
         songs.append(song);

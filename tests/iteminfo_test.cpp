@@ -56,7 +56,7 @@ private slots:
         song.album = u"Kind of Blue"_s;
         song.track = 3;
         song.year = 1959;
-        song.genre = u"Jazz"_s;
+        song.genres = {u"Jazz"_s};
         song.playCount = 1'204;
         song.created = QDateTime(QDate(2026, 11, 1), QTime(12, 0));
         const QList<InfoRow> rows = songInfo(song);
@@ -102,15 +102,18 @@ private slots:
         album.year = 1959;
         album.releaseDate = QDate(1959, 8, 17);
         album.recordLabels = {u"Columbia"_s, u"Legacy"_s};
+        album.genres = {u"Jazz"_s, u"Modal Jazz"_s};
         const QList<InfoRow> rows = albumInfo(album, {flac(u"1"_s, 1200), flac(u"2"_s, 1260)});
+        // All of them, under a plural label.
+        QCOMPARE(valueOf(rows, u"Genres"_s), u"Jazz, Modal Jazz"_s);
         QCOMPARE(valueOf(rows, u"Released"_s), u"17 August 1959"_s);
         QCOMPARE(valueOf(rows, u"Songs"_s), u"2"_s);
         QCOMPARE(valueOf(rows, u"Length"_s), u"41 minutes"_s);
         QCOMPARE(valueOf(rows, u"Size"_s), u"80.0 MB"_s);
         QCOMPARE(valueOf(rows, u"Format"_s), u"FLAC · 24-bit / 96 kHz"_s);
         QCOMPARE(valueOf(rows, u"Label"_s), u"Columbia, Legacy"_s);
-        // Never played: no plays and no last played.
-        QVERIFY(!labels(rows).contains(u"Plays"_s));
+        // Never played: plays says so, and no last played.
+        QCOMPARE(valueOf(rows, u"Plays"_s), u"None"_s);
         QVERIFY(!labels(rows).contains(u"Last Played"_s));
     }
 

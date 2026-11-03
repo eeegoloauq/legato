@@ -50,7 +50,8 @@ struct Album {
     // OpenSubsonic: each album artist, for one link each. At least the one of `artist` when it
     // has an id.
     QList<ArtistRef> artists;
-    QString genre;
+    // Every genre, the main one first (OpenSubsonic genres, else the classic genre).
+    QStringList genres;
     int songCount = 0;
     int duration = 0; // seconds
     int playCount = 0;
@@ -87,8 +88,8 @@ struct Song {
     qint64 size = 0; // bytes
     int playCount = 0;
     QString comment;
-    // Every genre, joined with commas (OpenSubsonic genres, else the classic genre).
-    QString genre;
+    // Every genre, the main one first (OpenSubsonic genres, else the classic genre).
+    QStringList genres;
     // When the server first saw the file.
     QDateTime created;
     // When the user last played it; invalid when never (OpenSubsonic).

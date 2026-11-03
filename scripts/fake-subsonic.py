@@ -57,6 +57,9 @@ def album(i):
     return {"id": f"a{i}", "name": name, "artist": artist, "artistId": artist_id(artist),
             "artists": [{"id": artist_id(artist), "name": artist}],
             "coverArt": f"al-a{i}", "year": 1965 + i % 60, "genre": ["Jazz", "Folk", "Electronic"][i % 3],
+            # Every fifth album is tagged with many genres, as real libraries often are.
+            "genres": [{"name": g} for g in [["Jazz", "Folk", "Electronic"][i % 3]]
+                       + (["Ambient", "Soundtrack", "Downtempo", "Chillout", "Experimental"] if i % 5 == 0 else [])],
             "songCount": 2 if kind == "single" else SONGS_PER_ALBUM, "duration": 30 * SONGS_PER_ALBUM,
             "created": f"2026-{1 + i % 12:02d}-{1 + i % 28:02d}T12:00:00Z", "releaseTypes": [kind],
             "playCount": (i * 37) % 23 if i % 4 == 0 else 0, "recordLabels": [{"name": "Fake Records"}],

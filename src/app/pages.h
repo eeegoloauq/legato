@@ -137,7 +137,8 @@ public:
     QVariantList artists() const { return artistList(m_album.artists); }
     QString coverArt() const { return m_album.coverArt; }
     int year() const { return m_album.year; }
-    QString genre() const { return m_album.genre; }
+    // The main genre: the header has room for one, Get info lists them all.
+    QString genre() const { return m_album.genres.value(0); }
     QString quality() const;
     QString comment() const { return m_comment; }
     QString summary() const;

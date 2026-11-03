@@ -70,10 +70,23 @@ QString countText(qint64 count)
     return count > 0 ? QLocale().toString(count) : QString();
 }
 
+// Always a row, so "never" reads as such and not as a missing field. (Servers leave out a count
+// of zero.)
+QString playsText(qint64 count)
+{
+    return count > 0 ? QLocale().toString(count) : tr("None");
+}
+
 void add(QList<InfoRow> &rows, const char *label, const QString &value)
 {
     if (!value.isEmpty())
         rows.append({tr(label), value});
+}
+
+// Every genre here: the album's header shows only the first.
+void addGenres(QList<InfoRow> &rows, const QStringList &genres)
+{
+    add(rows, genres.size() > 1 ? "Genres" : "Genre", genres.join(", "_L1));
 }
 
 } // namespace
@@ -100,12 +113,12 @@ QList<InfoRow> songInfo(const Song &song)
         track = song.disc > 1 ? tr("%1 on disc %2").arg(song.track).arg(song.disc) : QString::number(song.track);
     add(rows, "Track", track);
     add(rows, "Year", song.year > 0 ? QString::number(song.year) : QString());
-    add(rows, "Genre", song.genre);
+    addGenres(rows, song.genres);
     add(rows, "Length", clockText(song.duration));
     add(rows, "Format", formatText(song));
     add(rows, "Bit Rate", song.bitRate > 0 ? tr("%1 kbps").arg(QLocale().toString(song.bitRate)) : QString());
     add(rows, "Size", sizeText(song.size));
-    add(rows, "Plays", countText(song.playCount));
+    rows.append({tr("Plays"), playsText(song.playCount)});
     add(rows, "Last Played", dateText(song.played));
     add(rows, "Date Added", dateText(song.created));
     add(rows, "Comment", song.comment);
@@ -118,7 +131,7 @@ QList<InfoRow> albumInfo(const Album &album, const QList<Song> &songs)
     add(rows, "Released", album.releaseDate.isValid() ? dateText(album.releaseDate)
                           : album.year > 0             ? QString::number(album.year)
                                                        : QString());
-    add(rows, "Genre", album.genre);
+    addGenres(rows, album.genres);
     add(rows, "Songs", countText(songs.isEmpty() ? album.songCount : songs.size()));
     qint64 seconds = 0;
     qint64 bytes = 0;
@@ -136,7 +149,7 @@ QList<InfoRow> albumInfo(const Album &album, const QList<Song> &songs)
         add(rows, "Format", shared ? first : tr("Mixed"));
     }
     add(rows, "Size", sizeText(bytes));
-    add(rows, "Plays", countText(album.playCount));
+    rows.append({tr("Plays"), playsText(album.playCount)});
     add(rows, "Last Played", dateText(album.played));
     add(rows, "Date Added", dateText(album.created));
     add(rows, "Label", album.recordLabels.join(", "_L1));

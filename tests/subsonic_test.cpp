@@ -124,7 +124,7 @@ private slots:
             "created":"2026-11-01T01:49:37.22605989Z","played":"2026-11-03T08:55:23.176Z"}}})";
         const Song song = subsonic::parseSong(subsonic::parseEnvelope(json).body);
         QCOMPARE(song.id, u"s1"_s);
-        QCOMPARE(song.genre, u"Rock, Indie"_s);
+        QCOMPARE(song.genres, QStringList({u"Rock"_s, u"Indie"_s}));
         QCOMPARE(song.created.date(), QDate(2026, 11, 1));
         QCOMPARE(song.played.toUTC().date(), QDate(2026, 11, 3));
         QVERIFY(subsonic::parseSong(subsonic::parseEnvelope(R"({"subsonic-response":{"status":"ok"}})").body).id.isEmpty());
@@ -133,7 +133,7 @@ private slots:
             "genre":"Jazz","recordLabels":[{"name":"Blue Note"}],"releaseDate":{"year":1959,"month":8,"day":17},
             "song":[]}}})";
         const Album parsed = subsonic::parseAlbum(subsonic::parseEnvelope(album).body).album;
-        QCOMPARE(parsed.genre, u"Jazz"_s);
+        QCOMPARE(parsed.genres, QStringList{u"Jazz"_s});
         QCOMPARE(parsed.recordLabels, QStringList{u"Blue Note"_s});
         QCOMPARE(parsed.releaseDate, QDate(1959, 8, 17));
         // A year alone is no date: Album::year has it.

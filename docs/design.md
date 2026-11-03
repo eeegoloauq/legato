@@ -87,7 +87,7 @@ volume buttons.
 
 - The window takes the cover's main color as its background while the album shows (dark and muted
   in dark mode, a pale wash in light mode), and the top of the page is tinted with the cover.
-- Cover on the left; beside it "Album", title, artist link, genre and year, quality badge.
+- Cover on the left; beside it "Album", title, artist link, the main genre and year, quality badge.
 - The album comment in one line with "More". Rip and tool comments (EAC, URLs) are hidden.
 - Play, Shuffle, favorite star, "…". Track list with numbers and durations, by disc.
 - Footer: "9 songs, 41 minutes, 312 MB · FLAC · 24-bit / 96 kHz".
@@ -142,10 +142,13 @@ the queue stays.
 
 ## Get info
 
-A card over the dimmed window from the song and album menus, the player's "…", the palette and
-Ctrl+I. It asks the server each time, so play counts are fresh. Song: album, track, year, genre,
-length, format, bit rate, size, plays, last played, date added, comment. Album: released, genre,
-songs, length, format, size, plays, last played, date added, label. Empty rows are left out.
+A card over the dimmed window from the song and album menus, the player's "…", the search's
+actions and Ctrl+I. Esc or a click outside closes it. It asks the server each time, so play counts are fresh. Song:
+album, track, year, genres, length, format, bit rate, size, plays, last played, date added, comment.
+Album: released, genres, songs, length, format, size, plays, last played, date added, label. Empty
+rows are left out, except plays: "None" says it was never played. Every genre is listed here; the
+album's header has room for the first only. Nothing in the card is a link: it is for reading and
+copying.
 
 ## Search
 
