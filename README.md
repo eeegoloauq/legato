@@ -35,6 +35,8 @@ Credential Manager).
 - Media keys and the desktop's player controls (MPRIS)
 - Several servers, one active at a time
 
+![The full-screen player with synced lyrics](docs/screenshots/player.webp)
+
 ## Development
 
 Legato is Qt Quick and C++ with libmpv ([architecture](docs/architecture.md),
