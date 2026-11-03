@@ -3,7 +3,7 @@ import QtQuick.Controls.Basic
 import QtQuick.Effects
 import Legato
 
-// A menu in the app's look: a raised rounded card with a soft shadow. Its entries are Actions. An
+// A menu in the app's look: a rounded glass card with a soft shadow. Its entries are Actions. An
 // action with an icon color gets a dot in that color before its text (server status); a checked one
 // gets a check mark after it.
 //
@@ -128,12 +128,13 @@ Menu {
             color: Theme.shadow
         }
 
-        Rectangle {
+        // Glass over the whole window, as the player bar: a menu over an album takes its color.
+        GlassPanel {
             anchors.fill: parent
             radius: Theme.radius
-            color: Theme.raised
-            border.width: 1
-            border.color: Theme.line
+            rim: true
+            thin: true
+            source: menu.parent ? menu.parent.Window.contentItem : null
         }
     }
 

@@ -24,7 +24,15 @@ interface itself is neutral.
   scrolls, the header turns translucent and shows the page title.
 - **Navigation**: every page, Settings included, opens in the content area on one history. Back
   returns to the previous page as it was left, scroll position included.
-- **Player bar** floats over the bottom of the content.
+- **Player bar** floats over the bottom of the content. Confirmations ("Added to Road Trip") show
+  for a moment as a glass pill just above it.
+- **Glass**: the player bar, the scrolled header, menus, dropdowns and the search's results blur
+  and tint what is under them. The bars are dense and neutral; what opens for a moment (menus, the
+  search's results, the confirmation pill) is thinner, so the color under it shows. Settings >
+  Transparency turns the blur off (a solid tint), for older graphics.
+- **Moving the window**: there is no title bar. A drag on the header's empty parts, the sidebar's
+  top strip or the side panel's moves the window, a double click maximizes it. A drag that starts
+  on a control (a text field, a slider) stays with it.
 - **Side panel** for Up Next and Lyrics sits beside the content, full height, and slides in from the
   window's edge. The content changes width once per opening or closing, never with each frame of the
   slide.
@@ -189,10 +197,11 @@ often have no certificate.
 A page (sidebar or Ctrl+,). Rows in groups with the label on the left and a dropdown or switch on
 the right.
 
-- Appearance: Theme (System / Light / Dark); Colors from covers.
+- Appearance: Theme (System / Light / Dark); Colors from covers; Transparency (on).
 - Sidebar: a switch per Library row and for Playlists.
-- Playback: Scrobbling; Crossfade (Off / Automatic / Fixed), with Crossfade length for Fixed and
-  Keep albums gapless; Find missing lyrics on LRCLIB (off).
+- Playback: Scrobbling; Crossfade (Off / Automatic / Fixed; Automatic by default, as Apple Music's
+  AutoMix), with Crossfade length for Fixed and Keep albums gapless (on, so an album plays as it
+  was made); Find missing lyrics on LRCLIB (off).
 - Servers: status dot, Switch, Rename, Sign Out, Remove, Add Server.
 
 ## Keyboard
@@ -223,9 +232,11 @@ the right.
 
 - Light: background `#fafafa`, raised `#ffffff`, text `#1d1d1d`, secondary `#6e6e6e`, tertiary
   `#a3a3a3`.
-- Dark: background `#161616`, raised `#262626`, text `#f5f5f5`, secondary `#a1a1a1`, tertiary
+- Dark: background `#101010`, raised `#202020`, text `#f5f5f5`, secondary `#a1a1a1`, tertiary
   `#6b6b6b`.
-- Lines and fills are translucent neutrals. The accent is the text color.
+- Lines and fills are translucent neutrals, so buttons on an album's color take that color faintly.
+  They stay solid, not glass: blurring a flat color changes nothing, and contrast comes from the
+  colors under them, which Legato keeps dark (or pale) enough. The accent is the text color.
 - Font: the system UI font. Body 14 px, page titles 34–36 px, section titles 21 px.
 - Radii: covers 8 px, cards 14 px, player bar 22 px. Motion: short eases (140–260 ms), all of it
   off with reduced motion.

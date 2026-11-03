@@ -10,7 +10,8 @@ QtObject {
     // 0 system, 1 light, 2 dark. Saved in ~/.config/legato/settings.conf.
     readonly property list<StoredSetting> stored: [
         StoredSetting { category: "appearance"; property alias appearance: theme.savedAppearance },
-        StoredSetting { category: "appearance"; property alias coverColors: theme.coverColors }
+        StoredSetting { category: "appearance"; property alias coverColors: theme.coverColors },
+        StoredSetting { category: "appearance"; property alias transparency: theme.transparency }
     ]
     property int savedAppearance: 0
     // Pages of an album, artist or playlist take colors from the cover: the window's backdrop and
@@ -34,15 +35,18 @@ QtObject {
     readonly property bool dark: appearance === 2
         || (appearance === 0 && Application.styleHints.colorScheme === Qt.ColorScheme.Dark)
 
+    // Glass (the player bar, the header, menus) blurs what is under it. Off, it is a solid tint:
+    // lighter on old graphics.
+    property bool transparency: true
     // M0 switches, set by the frame meter. Each turns one costly effect off.
-    property bool blurOn: true
+    property bool blurOn: transparency
     property bool shadowsOn: true
     property bool animationsOn: true
 
     // Neutral greys: no blue or violet bias. The sidebar and the content are one surface, split by
     // a hairline, so a page's backdrop (an album's color) can reach under both.
-    readonly property color bg: dark ? "#161616" : "#fafafa"
-    readonly property color raised: dark ? "#262626" : "#ffffff"
+    readonly property color bg: dark ? "#101010" : "#fafafa"
+    readonly property color raised: dark ? "#202020" : "#ffffff"
     readonly property color text: dark ? "#f5f5f5" : "#1d1d1d"
     readonly property color text2: dark ? "#a1a1a1" : "#6e6e6e"
     readonly property color text3: dark ? "#6b6b6b" : "#a3a3a3"
@@ -67,7 +71,7 @@ QtObject {
         return Qt.hsla(Math.max(0, c.hslHue), c.hslSaturation * (dark ? 0.42 : 0.5), dark ? 0.115 : 0.955, 1)
     }
     // Text on the accent or tint color. (A name starting with "on" would be read as a signal handler.)
-    readonly property color textOnAccent: dark ? "#161616" : "#ffffff"
+    readonly property color textOnAccent: dark ? "#101010" : "#ffffff"
     readonly property color red: dark ? "#ff6961" : "#d70015"
     readonly property color green: dark ? "#30d158" : "#248a3d"
 
@@ -76,6 +80,12 @@ QtObject {
     // Made from the backdrop, so the bars over an album's page carry its color faintly.
     readonly property color glass: dark ? Qt.alpha(Qt.tint(backdrop, Qt.rgba(1, 1, 1, 0.06)), 0.80)
                                         : Qt.alpha(Qt.tint(backdrop, Qt.rgba(1, 1, 1, 0.6)), 0.82)
+    // Thin glass, for what opens over a page for a moment (menus, the search dropdown, a notice):
+    // lighter, so the color under it shows, as Apple's menus. Neutral rather than the backdrop, as
+    // a menu over the full-screen player lies on the cover's colors, not the page's. At these
+    // densities white text keeps 4.5:1 over a blurred white cover.
+    readonly property color glassThin: dark ? Qt.rgba(0.12, 0.12, 0.12, 0.62) : Qt.rgba(0.98, 0.98, 0.98, 0.66)
+    readonly property real glassThinSaturation: 0.15
     readonly property color glassEdge: dark ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.75)
     readonly property real glassBlur: 64
     // Stretches the blur beyond MultiEffect's largest radius (64 px) to about twice that: at

@@ -211,8 +211,12 @@ every 10 s) asks again and takes a newer queue saved elsewhere meanwhile.
   `io.github.eeegoloauq.legato`: the Wayland app id, the `.desktop` file and the AppStream id.
 - Settings live in `~/.config/legato/settings.conf`, caches (covers, crossfade levels, lyrics) in
   `~/.cache/legato/`; on Windows both under `%LOCALAPPDATA%\legato`.
-- Linux cannot blur behind a window, so the sidebar is solid. The glass header and player bar blur
-  Legato's own content, which works everywhere.
+- Linux cannot blur behind a window, so the sidebar is solid. The glass (header, player bar, menus,
+  the search's results, the notice) blurs Legato's own content, which works everywhere
+  (`qml/GlassPanel.qml`). A panel finds where it is in what it blurs before every frame: a binding
+  sees only its own position, which stays at zero inside a parent that moves (the player bar, a
+  menu), and the player bar blurred the top of the page until 0.1.1. Settings > Transparency turns
+  the blur off.
 
 ## Artwork and colors
 

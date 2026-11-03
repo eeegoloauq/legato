@@ -12,6 +12,9 @@ Item {
     property real radius: 0
     // A light rim around the panel, as on Apple's floating bars.
     property bool rim: false
+    // Thin glass (Theme.glassThin): menus and other short-lived panels.
+    property bool thin: false
+    readonly property color tint: thin ? Theme.glassThin : Theme.glass
 
     readonly property real padding: Theme.glassBlur * (1 + Theme.glassBlurMultiplier) / 2
     readonly property bool blurring: Theme.blurOn && visible
@@ -98,7 +101,7 @@ Item {
         blur: 1.0
         blurMax: Theme.glassBlur
         blurMultiplier: Theme.glassBlurMultiplier
-        saturation: Theme.glassSaturation
+        saturation: panel.thin ? Theme.glassThinSaturation : Theme.glassSaturation
         maskEnabled: true
         maskSource: mask
     }
@@ -107,7 +110,7 @@ Item {
         anchors.fill: parent
         radius: panel.radius
         // Without blur the tint alone has to separate the panel from what is behind it.
-        color: panel.blurring ? Theme.glass : Qt.alpha(Theme.glass, 0.96)
+        color: panel.blurring ? panel.tint : Qt.alpha(panel.tint, 0.96)
         border.width: panel.rim ? 1 : 0
         border.color: Theme.glassEdge
     }

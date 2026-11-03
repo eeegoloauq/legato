@@ -232,6 +232,17 @@ ContentPage {
                         onToggled: Theme.coverColors = checked
                     }
                 }
+
+                SettingRow {
+                    label: qsTr("Transparency")
+                    detail: qsTr("The player bar, the header and menus blur what is under them. Off, they are solid, which is lighter on older graphics.")
+
+                    ToggleSwitch {
+                        checked: Theme.transparency
+                        Accessible.name: qsTr("Transparency")
+                        onToggled: Theme.transparency = checked
+                    }
+                }
             }
 
             Section {
