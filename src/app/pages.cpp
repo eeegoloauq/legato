@@ -609,9 +609,14 @@ void SearchResults::rebuild()
         for (const Song &song : std::as_const(m_found.songs))
             add(u"song"_s, tr("Songs"), song.id, song.title, {song.artist, song.album}, song.coverArt);
         if (library()) {
+            int playlists = 0;
             for (const Playlist &playlist : library()->playlists()->items()) {
-                if (playlist.name.contains(query, Qt::CaseInsensitive))
+                if (playlists == Playlists)
+                    break;
+                if (playlist.name.contains(query, Qt::CaseInsensitive)) {
                     add(u"playlist"_s, tr("Playlists"), playlist.id, playlist.name, {}, playlist.coverArt);
+                    ++playlists;
+                }
             }
         }
     }

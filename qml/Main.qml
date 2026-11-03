@@ -177,7 +177,6 @@ ApplicationWindow {
             width: Theme.sidebarWidth
             route: window.currentPage ? window.currentPage.route : ({ page: "" })
             onNavigate: route => window.open(route)
-            onSearchRequested: searchPalette.open()
 
             Behavior on reveal {
                 enabled: Theme.animationsOn
@@ -243,6 +242,21 @@ ApplicationWindow {
                 canGoForward: window.forwardRoutes.length > 0
                 onBackRequested: window.back()
                 onForwardRequested: window.forward()
+                onActionRequested: name => {
+                    switch (name) {
+                    case "lyrics":
+                    case "queue":
+                        window.panelPage = name
+                        window.panelOpen = true
+                        break
+                    case "fullScreen":
+                        window.fullScreenOpen = true
+                        break
+                    case "settings":
+                        window.open({ page: "settings" })
+                        break
+                    }
+                }
             }
 
             Notice {
@@ -355,26 +369,6 @@ ApplicationWindow {
 
     InfoCard {
         id: infoCard
-    }
-
-    SearchPalette {
-        id: searchPalette
-
-        onActionRequested: name => {
-            switch (name) {
-            case "lyrics":
-            case "queue":
-                window.panelPage = name
-                window.panelOpen = true
-                break
-            case "fullScreen":
-                window.fullScreenOpen = true
-                break
-            case "settings":
-                window.open({ page: "settings" })
-                break
-            }
-        }
     }
 
     ResizeEdges {}
@@ -537,21 +531,14 @@ ApplicationWindow {
         sequence: "Ctrl+,"
         onActivated: window.open({ page: "settings" })
     }
-    // A text field keeps / for typing; the shortcut fires only where it types nothing.
+    // The search in the header (docs/design.md, "Search"). A text field keeps / for typing; the
+    // shortcut fires only where it types nothing. From the full-screen player, it goes back first.
     Shortcut {
-        sequences: ["Ctrl+K", "/"]
-        enabled: Session.state === Session.Ready || Session.state === Session.Unreachable
-        onActivated: searchPalette.open()
-    }
-    // Find in the page's songs where it has some, else the search palette (docs/design.md, "Song lists").
-    Shortcut {
-        sequence: "Ctrl+F"
+        sequences: ["Ctrl+K", "/", "Ctrl+F"]
         enabled: Session.state === Session.Ready || Session.state === Session.Unreachable
         onActivated: {
-            if (window.currentPage && window.currentPage.findable && !window.fullScreenOpen)
-                topBar.find()
-            else
-                searchPalette.open()
+            window.fullScreenOpen = false
+            topBar.search()
         }
     }
     // A song list with a chosen row takes Ctrl+I for that song first.

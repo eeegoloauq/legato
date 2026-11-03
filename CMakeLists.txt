@@ -64,7 +64,6 @@ qt_add_qml_module(legato
     qml/FullScreenPlayer.qml
     qml/GenCover.qml
     qml/GlassPanel.qml
-    qml/FindField.qml
     qml/Glyph.qml
     qml/HomePage.qml
     qml/IconButton.qml
@@ -95,7 +94,7 @@ qt_add_qml_module(legato
     qml/ResizeEdges.qml
     qml/RoundedImage.qml
     qml/Scroller.qml
-    qml/SearchPalette.qml
+    qml/SearchField.qml
     qml/SectionTitle.qml
     qml/SettingsPage.qml
     qml/SidePanel.qml

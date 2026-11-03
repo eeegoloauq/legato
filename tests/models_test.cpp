@@ -177,17 +177,26 @@ private slots:
         // Disc 2 starts at this row in the album, not among the matches.
         QCOMPARE(filter.data(filter.index(0, 0), SongModel::DiscHeaderRole).toInt(), 0);
 
+        // The search's first group: the rows of `songs`, so a match plays on into the whole list.
+        const QVariantList first = filter.firstMatches(5);
+        QCOMPARE(first.size(), 1);
+        QCOMPARE(first.first().toMap().value(u"row"_s).toInt(), 2);
+        QCOMPARE(first.first().toMap().value(u"title"_s).toString(), u"Freedom"_s);
+
         filter.setText(u"hold"_s);
         QCOMPARE(filter.count(), 1);
         QCOMPARE(filter.sourceRow(0), 1);
         filter.setText(u"lemonade"_s);
         QCOMPARE(filter.count(), 3);
+        QCOMPARE(filter.firstMatches(2).size(), 2);
         filter.setText(u"nothing"_s);
         QCOMPARE(filter.count(), 0);
         QCOMPARE(filter.sourceRow(0), -1);
 
         filter.setText(QString());
         QCOMPARE(filter.count(), 3);
+        // Nothing typed, nothing found: the search lists no songs of the page.
+        QVERIFY(filter.firstMatches(5).isEmpty());
         QCOMPARE(filter.data(filter.index(2, 0), SongModel::DiscHeaderRole).toInt(), 2);
         QCOMPARE(SongFilter::fold(u"Sigur Rós Ágætis"_s), u"sigur ros agætis"_s);
     }

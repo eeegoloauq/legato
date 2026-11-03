@@ -8,8 +8,7 @@ import Legato
 // selects a row; ↑/↓ move, Enter plays, Shift+F10 or the Menu key opens the song menu, Ctrl+I gets
 // info. Declare a WheelScroll after it that calls pointerMoved().
 //
-// With `findPage` set, the page's find field filters the rows (`filter`). Rows here are the
-// filter's; playing and menus use the row in `songs`, so a match plays on into the whole list.
+// With `searchPage` set, the header's search finds in these songs first (ContentPage.localSongs).
 ListView {
     id: list
 
@@ -21,11 +20,10 @@ ListView {
     // A playlist of the user's: its songs' menus offer Remove from Playlist.
     property string playlistId
     property int selected: -1
-    property ContentPage findPage: null
-    readonly property alias filter: songFilter
+    property ContentPage searchPage: null
 
     function play(row) {
-        Library.playFrom(songs, songFilter.sourceRow(row), from)
+        Library.playFrom(songs, row, from)
     }
 
     function pointerMoved() {
@@ -59,7 +57,7 @@ ListView {
     anchors.leftMargin: Theme.gutter - 12
     anchors.rightMargin: Theme.gutter - 12
     bottomMargin: Theme.barHeight + 56
-    model: songFilter
+    model: songs
     reuseItems: true
     cacheBuffer: 600
     boundsBehavior: Flickable.StopAtBounds
@@ -67,37 +65,17 @@ ListView {
     focus: true
     keyNavigationEnabled: false
     onCountChanged: if (selected >= count) selected = -1
-    Component.onCompleted: if (findPage) findPage.findable = true
-
-    SongFilter {
-        id: songFilter
-
-        songs: list.songs
-        text: list.findPage ? list.findPage.findText : ""
-        // The matches start under the header: a list scrolled down to the end of a long album
-        // brings them into view instead of leaving them above it.
-        onTextChanged: {
-            list.selected = -1
-            const rowsTop = list.originY + (list.headerItem ? list.headerItem.height : 0) - Theme.headerHeight
-            if (list.contentY > rowsTop) {
-                revealGlide.stop()
-                list.contentY = rowsTop
-            }
-        }
+    Binding {
+        when: list.searchPage !== null
+        target: list.searchPage
+        property: "localSongs"
+        value: list.songs
     }
-
-    Connections {
-        target: list.findPage
-
-        function onFindCommitted(play) {
-            if (list.count === 0)
-                return
-            list.selected = 0
-            list.forceActiveFocus()
-            list.reveal()
-            if (play)
-                list.play(0)
-        }
+    Binding {
+        when: list.searchPage !== null
+        target: list.searchPage
+        property: "localFrom"
+        value: list.from
     }
 
     // Ctrl+I is the window's Get info for the playing song; with a row chosen, it is that row's.
@@ -111,7 +89,7 @@ ListView {
         const plain = (event.modifiers & ~Qt.KeypadModifier) === Qt.NoModifier
         if (event.key === Qt.Key_I && event.modifiers === Qt.ControlModifier) {
             if (selected >= 0)
-                Navigation.info("song", songFilter.songs.idAt(songFilter.sourceRow(selected)))
+                Navigation.info("song", songs.idAt(selected))
             event.accepted = true
             return
         }
@@ -151,7 +129,6 @@ ListView {
 
     delegate: SongRow {
         songs: list.songs
-        row: songFilter.sourceRow(index)
         mode: list.mode
         albumArtist: list.albumArtist
         playlistId: list.playlistId

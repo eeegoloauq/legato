@@ -221,9 +221,9 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 };
 
-// Find in page (docs/design.md, "Song lists"): the songs of a SongModel whose title, artists or
-// album hold every word of `text`, ignoring case and accents. The view shows these rows; playing
-// and the song menu map them back with sourceRow(), so a song plays on into the whole list.
+// The songs of a SongModel whose title, artists or album hold every word of `text`, ignoring case
+// and accents: the search's first group on an album, a playlist or Favorites (docs/design.md,
+// "Search"). sourceRow() maps a match back, so it plays on into the whole list.
 class SongFilter : public QSortFilterProxyModel
 {
     Q_OBJECT
@@ -246,6 +246,8 @@ public:
 
     // The row in `songs` of the row shown here; -1 for none.
     Q_INVOKABLE int sourceRow(int row) const;
+    // Up to `count` matches as maps of row (in `songs`), songId, title, artist and coverArt.
+    Q_INVOKABLE QVariantList firstMatches(int count) const;
     QVariant data(const QModelIndex &index, int role) const override;
 
     // Lower case without accents or other marks, for matching: "Beyoncé" -> "beyonce".

@@ -6,8 +6,8 @@ import Legato
 
 // The sidebar (docs/design.md, "Shell"): the pages, the pins, each playlist with its cover, and
 // Settings at the foot. It has no background of its own: the window's backdrop shows through, split
-// from the content by a hairline. Search opens the palette. Library rows and the playlists can be
-// taken off (a right click, or Settings); a right click on a pin unpins it.
+// from the content by a hairline. Library rows and the playlists can be taken off (a right click,
+// or Settings); a right click on a pin unpins it.
 Item {
     id: sidebar
 
@@ -15,7 +15,6 @@ Item {
     property var route: ({ page: "" })
 
     signal navigate(var route)
-    signal searchRequested()
 
     Rectangle {
         anchors.right: parent.right
@@ -121,7 +120,6 @@ Item {
             bottomPadding: 1
 
             PageItem { glyph: "home"; text: qsTr("Home"); target: ({ page: "home" }) }
-            SidebarItem { width: parent.width; glyph: "search"; text: qsTr("Search"); onClicked: sidebar.searchRequested() }
 
             // Pinned albums, artists and playlists, in the order they were pinned.
             SectionLabel { visible: Prefs.pins.length > 0; text: qsTr("Pinned") }

@@ -15,15 +15,17 @@ Item {
     property bool canGoForward: false
     // Where back and forward start: further right while the sidebar button sits at the left end.
     property real leftInset: 20
-    // The page under the header: a findable one gets the find field at the right end.
+    // The page under the header, whose own songs the search finds first.
     property ContentPage page: null
 
     signal backRequested()
     signal forwardRequested()
+    // An action from the search: "lyrics", "queue", "fullScreen" or "settings".
+    signal actionRequested(string name)
 
-    // Ctrl+F: opens the find field of a findable page.
-    function find() {
-        findField.start()
+    // Ctrl+K, / or Ctrl+F.
+    function search() {
+        searchField.start()
     }
 
     height: Theme.headerHeight
@@ -98,8 +100,12 @@ Item {
         }
     }
 
+    // Centered on the window's header, and kept clear of the search on its right.
     Text {
         anchors.centerIn: parent
+        width: Math.min(implicitWidth, Math.max(0, bar.width - 2 * (bar.width - searchField.x) - 24))
+        elide: Text.ElideRight
+        horizontalAlignment: Text.AlignHCenter
         text: bar.title
         color: Theme.text
         font.pixelSize: Theme.fs
@@ -111,15 +117,14 @@ Item {
         }
     }
 
-    FindField {
-        id: findField
+    SearchField {
+        id: searchField
 
         anchors.right: controls.visible ? controls.left : parent.right
         anchors.rightMargin: controls.visible ? 14 : 16
         anchors.verticalCenter: parent.verticalCenter
-        visible: bar.page !== null && bar.page.findable
         page: bar.page
-        openWidth: Math.min(220, bar.width * 0.3)
+        onActionRequested: name => bar.actionRequested(name)
     }
 
     WindowControls {

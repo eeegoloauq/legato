@@ -9,7 +9,7 @@ interface itself is neutral.
 - **Sidebar**, top to bottom:
   - a thin strip for dragging the window, with the sidebar button at its left end: it slides the
     sidebar away and back (F9, remembered). The button stays in place while the sidebar is away.
-  - Home, Search (opens the search palette)
+  - Home
   - Pinned: albums, artists (round photo) and playlists pinned from their "…" menu, in the order
     they were pinned. Pins are kept on this computer, per server and account. A right click on a pin
     offers Unpin.
@@ -112,12 +112,8 @@ volume buttons.
 - ↑/↓ move between rows. "…", a right click or Shift+F10 opens the song menu. Ctrl+I opens Get info.
 - The playing row shows a small level meter in the playing cover's color.
 
-### Find in page
-
-On the Album, Playlist and Favorites pages a magnifier sits at the right end of the header; a click
-or Ctrl+F opens it into a field. A song matches when every word is in its title, artists or album,
-ignoring case and accents. ↓ goes to the first match, Enter plays it, Esc clears the field. Playing a
-match plays the whole album or playlist from that song. Elsewhere Ctrl+F opens the search palette.
+- On an album's page each song played before shows its play count (a small ▶ and the number)
+  before its length: the server's count of the listener's own listens.
 
 ## Menus
 
@@ -137,7 +133,7 @@ match plays the whole album or playlist from that song. Elsewhere Ctrl+F opens t
 
 ## Instant Mix
 
-From the song, album and artist menus, the player's "…" and the search palette. From the playing
+From the song, album and artist menus, the player's "…" and the search's actions. From the playing
 song, that song plays on and the mix replaces Up Next; from anything else, the mix replaces the
 queue. The mix is the artist's (`getSimilarSongs2`, 100 songs), arranged so an artist plays twice in
 a row only when nothing else is left. With nothing similar on the server, the player bar says so and
@@ -155,10 +151,31 @@ copying.
 
 ## Search
 
-One palette for everything: Ctrl+K, `/` or the sidebar's Search. Up to 4 artists, 5 albums and 8
-songs from the server once typing pauses for 150 ms; playlists and actions match at once. Actions:
-Shuffle Library, Instant Mix, Show Lyrics, Show Queue, Open Full-Screen Player, Get Info, Change
-Theme, Settings. Enter on an artist, album or playlist opens it; on a song, plays its album from it.
+One field at the right end of the header, on every page: Ctrl+K, `/` or Ctrl+F go to it. It widens
+to 360 px while in use, and what it finds drops down under it, as wide as the field, as rows with a
+small cover, in groups:
+
+1. On an album, a playlist or Favorites: up to 5 of the page's own songs, at once. A song matches
+   when every word is in its title, artists or album, ignoring case and accents. Playing one plays
+   the whole album or playlist from it.
+2. Up to 3 artists, 4 albums and 5 songs from the server once typing pauses for 150 ms, and up to 3
+   playlists whose name matches. A few of each keeps the list short; more letters narrow it.
+3. Actions whose name matches: Shuffle Library, Instant Mix, Show Lyrics, Show Queue, Open
+   Full-Screen Player, Get Info, Change Theme, Settings.
+
+↑/↓ choose, Enter opens an artist, album or playlist, plays a song (from its album) or runs the
+action. Esc clears the field, a second Esc leaves it. The page's list itself is never filtered.
+
+## Playlists
+
+- Add to Playlist › in the song and album menus and the player's "…": New Playlist…, then the
+  listener's own playlists. Songs already in the playlist are left out ("Already in Road Trip").
+- New Playlist on the Playlists page, and in Add to Playlist ›. A small card asks for the name.
+- On the listener's own playlists: Remove from Playlist in a song's menu, Rename… and Delete
+  Playlist… (confirmed, in red) in the playlist's menu. Other users' public playlists are read only.
+- Any user may make playlists: Navidrome does not ask for an admin, and the `playlistRole` it
+  reports is not enforced, so Legato does not hide anything on it. A refusal shows the server's
+  words in the player bar.
 
 ## Up Next
 
@@ -224,8 +241,7 @@ the right.
 | Ctrl+Shift+S | Shuffle the whole library |
 | ↑ / ↓, Enter | Move in a list, play the selected song |
 | Shift+F10 | Menu for the selected song |
-| Ctrl+K or / | Search and actions |
-| Ctrl+F | Find in the current album, playlist or favorites; elsewhere search |
+| Ctrl+K, / or Ctrl+F | Search (the page's own songs first on an album, playlist or Favorites) |
 | Ctrl+I | Get info for the chosen song, else the playing one |
 | Ctrl+L / Ctrl+J | Lyrics / queue |
 | Alt+← / Alt+→ | Back / forward |

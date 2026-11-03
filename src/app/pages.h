@@ -442,9 +442,12 @@ class SearchResults : public LibraryQuery
 
 public:
     static constexpr int TypingMs = 150;
-    static constexpr int Artists = 4;
-    static constexpr int Albums = 5;
-    static constexpr int Songs = 8;
+    // A few of each, so the dropdown stays short: what the user wants is near the top, and a
+    // longer query narrows it further.
+    static constexpr int Artists = 3;
+    static constexpr int Albums = 4;
+    static constexpr int Songs = 5;
+    static constexpr int Playlists = 3;
 
     explicit SearchResults(QObject *parent = nullptr);
 

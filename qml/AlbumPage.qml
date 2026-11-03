@@ -42,7 +42,7 @@ ContentPage {
 
         songs: details.songs
         from: details.name
-        findPage: page
+        searchPage: page
         mode: "album"
         albumArtist: details.artist
 
@@ -120,7 +120,6 @@ ContentPage {
             width: list.width - 24
             topPadding: 20
             text: details.error !== "" ? qsTr("Could not load this album: %1").arg(details.error)
-                : list.filter.active ? (list.count === 0 ? qsTr("No songs match.") : "")
                 : details.summary
             color: Theme.text2
             font.pixelSize: Theme.fsSmall

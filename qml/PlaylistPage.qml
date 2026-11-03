@@ -39,7 +39,7 @@ ContentPage {
         songs: playlist.songs
         from: playlist.name
         playlistId: playlist.editable ? playlist.playlistId : ""
-        findPage: page
+        searchPage: page
 
         header: PageHero {
             x: 12
@@ -100,7 +100,6 @@ ContentPage {
             topPadding: 20
             text: playlist.error !== "" ? qsTr("Could not load this playlist: %1").arg(playlist.error)
                 : !playlist.loading && playlist.songs.count === 0 ? qsTr("No songs yet.")
-                : list.filter.active ? (list.count === 0 ? qsTr("No songs match.") : "")
                 : playlist.summary
             color: Theme.text2
             font.pixelSize: Theme.fsSmall

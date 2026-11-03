@@ -254,6 +254,23 @@ int SongFilter::sourceRow(int row) const
     return mapToSource(index(row, 0)).row();
 }
 
+QVariantList SongFilter::firstMatches(int count) const
+{
+    QVariantList out;
+    if (!m_songs || !active())
+        return out;
+    for (int row = 0; row < std::min(count, rowCount()); ++row) {
+        const int source = sourceRow(row);
+        const Song &song = m_songs->at(source);
+        out.append(QVariantMap{{u"row"_s, source},
+                               {u"songId"_s, song.id},
+                               {u"title"_s, song.title},
+                               {u"artist"_s, song.artist},
+                               {u"coverArt"_s, song.coverArt}});
+    }
+    return out;
+}
+
 QVariant SongFilter::data(const QModelIndex &index, int role) const
 {
     // Disc headers mark where a disc starts in the whole album; among matches they would mislead.

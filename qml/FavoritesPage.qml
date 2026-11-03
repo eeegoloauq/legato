@@ -21,7 +21,7 @@ ContentPage {
 
         songs: favorites.songs
         from: qsTr("Favorite songs")
-        findPage: page
+        searchPage: page
 
         header: Column {
             x: 12
@@ -61,22 +61,14 @@ ContentPage {
         footer: Column {
             x: 12
             width: list.width - 24
-            topPadding: list.filter.active ? 20 : 36
+            topPadding: 36
             spacing: 36
-
-            // Find looks through the songs only; the albums and artists step aside meanwhile.
-            Text {
-                visible: list.filter.active && list.count === 0 && favorites.songs.count > 0
-                text: qsTr("No songs match.")
-                color: Theme.text2
-                font.pixelSize: Theme.fsSmall
-            }
 
             Carousel {
                 id: albums
 
                 width: parent.width
-                visible: favorites.albums.count > 0 && !list.filter.active
+                visible: favorites.albums.count > 0
                 title: qsTr("Albums")
                 model: favorites.albums
                 delegate: AlbumCard {
@@ -88,7 +80,7 @@ ContentPage {
                 id: artists
 
                 width: parent.width
-                visible: favorites.artists.count > 0 && !list.filter.active
+                visible: favorites.artists.count > 0
                 title: qsTr("Artists")
                 model: favorites.artists
                 textHeight: 50
