@@ -40,8 +40,7 @@ interface itself is neutral.
   window's edge. The content changes width once per opening or closing, never with each frame of the
   slide.
 - **Layers that cover the window** (the full-screen player, the sign-in card) hide everything under
-  them while open. They move the window themselves (drag, double click to maximize) and have their
-  own window buttons.
+  them while open. Their empty background moves the window and they have their own window buttons.
 - **Page changes**: the old page goes at once and the new one fades in. Pages with details (album,
   artist, playlist) show once their details are in, never filled in piece by piece.
 

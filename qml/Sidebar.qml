@@ -48,9 +48,8 @@ Item {
         width: parent.width
         height: Theme.headerHeight
 
-        DragHandler {
-            target: null
-            onActiveChanged: if (active) sidebar.Window.window.startSystemMove()
+        WindowDragArea {
+            anchors.fill: parent
         }
     }
 

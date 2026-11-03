@@ -69,23 +69,10 @@ Rectangle {
 
     // The window has no title bar here: the background moves it, a double click maximizes it. (Main
     // hides what is under the player, so nothing there can be clicked.)
-    MouseArea {
+    WindowDragArea {
         anchors.fill: parent
         hoverEnabled: true
         acceptedButtons: Qt.AllButtons
-
-        DragHandler {
-            target: null
-            onActiveChanged: if (active) root.Window.window.startSystemMove()
-        }
-
-        TapHandler {
-            acceptedButtons: Qt.LeftButton
-            onDoubleTapped: {
-                const window = root.Window.window
-                window.visibility === Window.Maximized ? window.showNormal() : window.showMaximized()
-            }
-        }
     }
 
     GenCover {

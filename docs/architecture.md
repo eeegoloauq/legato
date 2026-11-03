@@ -219,6 +219,10 @@ every 10 s) asks again and takes a newer queue saved elsewhere meanwhile.
   sees only its own position, which stays at zero inside a parent that moves (the player bar, a
   menu), and the player bar blurred the top of the page until 0.1.1. Settings > Transparency turns
   the blur off.
+- The frameless window moves through `qml/WindowDragArea.qml`, a MouseArea that calls
+  `startSystemMove()` once a drag passes the threshold. Not a DragHandler: Qt shows a press to the
+  pointer handlers under the item that took it, so a DragHandler took a text field's selection or a
+  slider's drag and moved the window instead (before 0.1.1).
 
 ## Artwork and colors
 

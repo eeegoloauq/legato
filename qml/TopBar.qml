@@ -31,26 +31,12 @@ Item {
     height: Theme.headerHeight
 
     // Solid to the pointer, so a click on the header never reaches the album under it; the wheel
-    // still scrolls the page. Its handlers see the press first: drag moves the window, a double
-    // click maximizes it.
-    MouseArea {
+    // still scrolls the page. A drag on its empty parts moves the window.
+    WindowDragArea {
         anchors.fill: parent
         hoverEnabled: true
         acceptedButtons: Qt.AllButtons
         onWheel: wheel => wheel.accepted = false
-
-        DragHandler {
-            target: null
-            onActiveChanged: if (active) bar.Window.window.startSystemMove()
-        }
-
-        TapHandler {
-            acceptedButtons: Qt.LeftButton
-            onDoubleTapped: {
-                const window = bar.Window.window
-                window.visibility === Window.Maximized ? window.showNormal() : window.showMaximized()
-            }
-        }
     }
 
     Item {

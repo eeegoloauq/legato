@@ -43,9 +43,8 @@ Rectangle {
         anchors.right: parent.right
         height: Theme.headerHeight
 
-        DragHandler {
-            target: null
-            onActiveChanged: if (active) panel.Window.window.startSystemMove()
+        WindowDragArea {
+            anchors.fill: parent
         }
 
         WindowControls {

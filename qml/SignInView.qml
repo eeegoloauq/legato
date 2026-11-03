@@ -23,21 +23,9 @@ Rectangle {
     Keys.onEscapePressed: Session.cancelSignIn()
 
     // The window has no title bar here either: the background moves it, a double click maximizes it.
-    MouseArea {
+    WindowDragArea {
         anchors.fill: parent
         acceptedButtons: Qt.AllButtons
-
-        DragHandler {
-            target: null
-            onActiveChanged: if (active) view.Window.window.startSystemMove()
-        }
-
-        TapHandler {
-            onDoubleTapped: {
-                const window = view.Window.window
-                window.visibility === Window.Maximized ? window.showNormal() : window.showMaximized()
-            }
-        }
     }
 
     WindowControls {

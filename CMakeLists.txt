@@ -115,6 +115,7 @@ qt_add_qml_module(legato
     qml/UpNextList.qml
     qml/WheelScroll.qml
     qml/WindowControls.qml
+    qml/WindowDragArea.qml
   RESOURCES
     # Material Symbols Rounded, Apache 2.0 (icons/LICENSE): only the ones in use.
     icons/add.svg
