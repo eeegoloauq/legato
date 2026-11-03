@@ -26,10 +26,11 @@ QtObject {
         return all[Library.serverKey] ?? []
     }
     property bool scrobbling: true
-    // Off by default, as in other players: an album plays as it was made.
-    property bool crossfade: false
+    // Automatic by default, as Apple Music's AutoMix: each change fits the songs, and
+    // keepAlbumsGapless leaves an album as it was made.
+    property bool crossfade: true
     // Fits each change to the songs' outro and intro; crossfadeSeconds is then unused.
-    property bool automaticCrossfade: false
+    property bool automaticCrossfade: true
     property int crossfadeSeconds: 6
     // 0 Off, 1 Automatic, 2 Fixed, as Settings lists them.
     readonly property int crossfadeMode: !crossfade ? 0 : automaticCrossfade ? 1 : 2
