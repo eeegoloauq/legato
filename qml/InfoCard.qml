@@ -40,6 +40,23 @@ Popup {
         }
     }
 
+    // Opened from a menu, the card is often up before the menu has finished closing, and the menu
+    // then hands the focus back to the page under it, where Esc does nothing. A modal card keeps it.
+    property bool holdFocus: false
+
+    onAboutToShow: holdFocus = true
+    onAboutToHide: holdFocus = false
+
+    Connections {
+        target: card.parent ? card.parent.Window.window : null
+        enabled: card.holdFocus
+
+        function onActiveFocusItemChanged() {
+            if (!card.activeFocus)
+                card.forceActiveFocus()
+        }
+    }
+
     Overlay.modal: Rectangle {
         color: Theme.dark ? Qt.rgba(0, 0, 0, 0.4) : Qt.rgba(0, 0, 0, 0.18)
     }
