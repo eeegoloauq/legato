@@ -2,19 +2,36 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Effects
 import Legato
 
 // The sidebar (docs/design.md, "Shell"): the pages, the pins, each playlist with its cover, and
 // Settings at the foot. It has no background of its own: the window's backdrop shows through, split
 // from the content by a hairline. Library rows and the playlists can be taken off (a right click,
-// or Settings); a right click on a pin unpins it.
+// or Settings); a right click on a pin unpins it. In a narrow window it lies over the content
+// (`floating`), on the backdrop's color with a shadow.
 Item {
     id: sidebar
 
     // The current page's route, for the highlight.
     property var route: ({ page: "" })
+    property bool floating: false
 
     signal navigate(var route)
+
+    RectangularShadow {
+        anchors.fill: parent
+        visible: sidebar.floating && Theme.shadowsOn
+        offset.x: 8
+        blur: 32
+        color: Theme.shadow
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        visible: sidebar.floating
+        color: Theme.backdrop
+    }
 
     Rectangle {
         anchors.right: parent.right

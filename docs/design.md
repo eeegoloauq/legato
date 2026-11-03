@@ -20,7 +20,10 @@ interface itself is neutral.
   Library rows and the Playlists section can be hidden: a right click offers Hide from Sidebar and
   Sidebar Settings…, and Settings has a switch per row. A section with no rows left loses its title.
   The sidebar has no background of its own; it and the content are one surface, split by a hairline.
-- **Content** scrolls under a sticky header with back and forward at the top left. When the page
+  In a window narrower than 1000 px it takes no room: it stays away, and the sidebar button (F9)
+  opens it over the content, with a shadow, until a page is chosen, the content is clicked or Esc.
+- **Content** scrolls under a sticky header with back and forward at the top left and the search
+  field at the top right. When the page
   scrolls, the header turns translucent and shows the page title.
 - **Navigation**: every page, Settings included, opens in the content area on one history. Back
   returns to the previous page as it was left, scroll position included.
@@ -249,7 +252,7 @@ the right.
 | Ctrl+, | Settings |
 | F9 | Show or hide the sidebar |
 | Arrows, Home, End, Page Up/Down | Choose a cover in a grid; Enter plays it |
-| Esc | Close the full-screen player, a menu or a dialog |
+| Esc | Close the full-screen player, a menu, a dialog, the side panel or the sidebar over the content; in the search, clear it, then leave it |
 
 ## Visual tokens
 

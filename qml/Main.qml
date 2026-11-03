@@ -17,8 +17,22 @@ ApplicationWindow {
     property bool panelOpen: panelArg >= 0
     property string panelPage: panelArg >= 0 ? Qt.application.arguments[panelArg + 1] || "queue" : "queue"
 
+    // Under this width the sidebar takes no room from the content: it stays away, and the sidebar
+    // button (F9) opens it over the content until a page is chosen or the content is clicked.
+    readonly property bool narrow: width < 1000
+    property bool sidebarFloating: false
+    readonly property bool sidebarShown: narrow ? sidebarFloating : Prefs.sidebarOpen
     // The content leaves room for the sidebar from the moment it starts to show until it is gone.
-    readonly property bool sidebarSpace: Prefs.sidebarOpen || sidebar.visible
+    readonly property bool sidebarSpace: !narrow && (Prefs.sidebarOpen || sidebar.visible)
+
+    function toggleSidebar() {
+        if (narrow)
+            sidebarFloating = !sidebarFloating
+        else
+            Prefs.sidebarOpen = !Prefs.sidebarOpen
+    }
+
+    onNarrowChanged: sidebarFloating = false
 
     function togglePanel(page) {
         if (panelOpen && panelPage === page) {
@@ -168,15 +182,20 @@ ApplicationWindow {
             // 0 hidden, 1 shown. Like the side panel, the content changes width once: hiding, the
             // sidebar slides out to the left and the content widens when it is gone; showing, the
             // content narrows at once and the sidebar slides into the space.
-            property real reveal: Prefs.sidebarOpen ? 1 : 0
+            property real reveal: window.sidebarShown ? 1 : 0
 
             x: -width * (1 - reveal)
             visible: reveal > 0
+            z: window.narrow ? 3 : 0
+            floating: window.narrow
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             width: Theme.sidebarWidth
             route: window.currentPage ? window.currentPage.route : ({ page: "" })
-            onNavigate: route => window.open(route)
+            onNavigate: route => {
+                window.sidebarFloating = false
+                window.open(route)
+            }
 
             Behavior on reveal {
                 enabled: Theme.animationsOn
@@ -299,6 +318,14 @@ ApplicationWindow {
             }
         }
 
+        // A click on the content closes the sidebar lying over it.
+        MouseArea {
+            anchors.fill: parent
+            z: 2
+            visible: window.sidebarFloating
+            onClicked: window.sidebarFloating = false
+        }
+
         // Over the sidebar's top strip, its glyph in line with the rows' glyphs, and in the same place
         // while the sidebar is away: then back and forward move over to make room.
         IconButton {
@@ -307,9 +334,10 @@ ApplicationWindow {
             x: 15
             y: (Theme.headerHeight - height) / 2
             glyph: "dock_to_right"
-            tip: Prefs.sidebarOpen ? qsTr("Hide Sidebar (F9)") : qsTr("Show Sidebar (F9)")
+            z: 4
+            tip: window.sidebarShown ? qsTr("Hide Sidebar (F9)") : qsTr("Show Sidebar (F9)")
             tone: Theme.text2
-            onClicked: Prefs.sidebarOpen = !Prefs.sidebarOpen
+            onClicked: window.toggleSidebar()
         }
 
         // Only while it slides over the content; in place, a hairline divides them.
@@ -525,7 +553,7 @@ ApplicationWindow {
     }
     Shortcut {
         sequence: "F9"
-        onActivated: Prefs.sidebarOpen = !Prefs.sidebarOpen
+        onActivated: window.toggleSidebar()
     }
     Shortcut {
         sequence: "Ctrl+,"
@@ -551,5 +579,10 @@ ApplicationWindow {
         sequence: "Esc"
         enabled: window.panelOpen && !window.fullScreenOpen
         onActivated: window.panelOpen = false
+    }
+    Shortcut {
+        sequence: "Esc"
+        enabled: window.sidebarFloating && !window.panelOpen && !window.fullScreenOpen
+        onActivated: window.sidebarFloating = false
     }
 }
