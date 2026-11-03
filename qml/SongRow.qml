@@ -35,6 +35,7 @@ Item {
     property string mode: "list"
     // An album's artist: an album row names the song's artists only when they differ.
     property string albumArtist
+    property string playlistId
     property bool selected: false
     readonly property bool playing: Player.songId === songId
     readonly property bool showsArtist: mode === "list" || (artist !== albumArtist && artist !== "")
@@ -292,6 +293,7 @@ Item {
         sourceComponent: SongMenu {
             songs: songRow.songs
             row: songRow.row
+            playlistId: songRow.playlistId
             songId: songRow.songId
             songTitle: songRow.title
             artist: songRow.artist

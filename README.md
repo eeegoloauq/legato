@@ -28,6 +28,7 @@ Credential Manager).
 ## Features
 
 - Albums, artists, songs, playlists and favorites from your server, with search (Ctrl+K)
+- Make playlists and add to them from any song or album
 - Automatic mixing between songs: it listens to the end of one and the start of the next, and albums still play without gaps
 - Instant Mix from any artist, album or song
 - Synced lyrics from the server, and from LRCLIB if you turn it on

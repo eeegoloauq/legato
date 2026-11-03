@@ -124,6 +124,29 @@ ApplicationWindow {
         function onInfoRequested(kind, id) {
             infoCard.show(kind, id)
         }
+
+        function onNameRequested(title, action, initial, done) {
+            askDialog.askName(title, action, initial, done)
+        }
+
+        function onConfirmRequested(title, detail, action, done) {
+            askDialog.confirm(title, detail, action, done)
+        }
+    }
+
+    Connections {
+        target: Library
+
+        function onNotice(text) {
+            notice.show(text)
+        }
+
+        function onPlaylistDeleted(id) {
+            Prefs.unpin("playlist", id)
+            const route = window.currentPage ? window.currentPage.route : null
+            if (route && route.page === "playlist" && route.id === id)
+                window.open({ page: "playlists" })
+        }
     }
 
     // Everything under a layer that covers the window (the full-screen player, the sign-in card) is
@@ -222,6 +245,15 @@ ApplicationWindow {
                 onForwardRequested: window.forward()
             }
 
+            Notice {
+                id: notice
+
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: playerBar.top
+                anchors.bottomMargin: 12
+                source: pages
+            }
+
             PlayerBar {
                 id: playerBar
 
@@ -315,6 +347,10 @@ ApplicationWindow {
         // Once the view is in the window: focus does not stick to an item outside it.
         onLoaded: (item as SignInView).focusFirstField()
         sourceComponent: SignInView {}
+    }
+
+    AskDialog {
+        id: askDialog
     }
 
     InfoCard {

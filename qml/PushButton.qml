@@ -9,6 +9,8 @@ Button {
 
     property bool primary: false
     property string glyph
+    // The text's color; red for an action that cannot be undone.
+    property color tone: primary ? Theme.textOnAccent : Theme.text
 
     implicitHeight: 34
     leftPadding: 16
@@ -41,7 +43,7 @@ Button {
                 anchors.verticalCenter: parent.verticalCenter
                 text: button.text
                 font: button.font
-                color: button.primary ? Theme.textOnAccent : Theme.text
+                color: button.tone
             }
         }
     }

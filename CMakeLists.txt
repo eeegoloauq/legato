@@ -51,6 +51,7 @@ qt_add_qml_module(legato
     qml/ArtistMenu.qml
     qml/ArtistPage.qml
     qml/ArtistsPage.qml
+    qml/AskDialog.qml
     qml/BarSlider.qml
     qml/Carousel.qml
     qml/CompactSongRow.qml
@@ -73,6 +74,7 @@ qt_add_qml_module(legato
     qml/Marquee.qml
     qml/MixingLabel.qml
     qml/MenuDivider.qml
+    qml/Notice.qml
     qml/Navigation.qml
     qml/PageHeading.qml
     qml/PageHero.qml
@@ -83,6 +85,7 @@ qt_add_qml_module(legato
     qml/PlaylistCover.qml
     qml/PlaylistMenu.qml
     qml/PlaylistPage.qml
+    qml/PlaylistSubmenu.qml
     qml/PlaylistsPage.qml
     qml/PopupMenu.qml
     qml/Prefs.qml
@@ -115,6 +118,7 @@ qt_add_qml_module(legato
     qml/WindowControls.qml
   RESOURCES
     # Material Symbols Rounded, Apache 2.0 (icons/LICENSE): only the ones in use.
+    icons/add.svg
     icons/artist.svg
     icons/chevron_left.svg
     icons/chevron_right.svg

@@ -170,6 +170,14 @@ private slots:
         QCOMPARE(playlist.playlist.name, u"Late"_s);
         QCOMPARE(playlist.playlist.changed.date(), QDate(2026, 3, 3));
         QCOMPARE(playlist.songs.size(), 1);
+        QVERIFY(!playlist.playlist.readonly);
+        // Navidrome marks another user's public playlist read only.
+        const QByteArray shared = R"({"subsonic-response":{"status":"ok","playlists":{"playlist":[
+            {"id":"p2","name":"Theirs","owner":"sam","public":true,"readonly":true}]}}})";
+        const QList<Playlist> lists = subsonic::parsePlaylists(subsonic::parseEnvelope(shared).body);
+        QCOMPARE(lists.size(), 1);
+        QVERIFY(lists.first().readonly);
+        QCOMPARE(lists.first().owner, u"sam"_s);
 
         QCOMPARE(subsonic::parseSongCount(subsonic::parseEnvelope(
                      R"({"subsonic-response":{"status":"ok","scanStatus":{"scanning":false,"count":3762}}})").body),

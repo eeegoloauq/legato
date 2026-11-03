@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QtQmlIntegration>
 
+#include <functional>
 #include <optional>
 
 class QNetworkAccessManager;
@@ -72,6 +73,18 @@ public:
     Q_INVOKABLE void queueAlbum(const QString &albumId, bool next);
     Q_INVOKABLE void playPlaylist(const QString &playlistId, bool shuffle = false);
     Q_INVOKABLE void loadPlaylists();
+    // Playlists (docs/design.md, "Playlists"). `kind` and `id` name what is added: a "song" or an
+    // "album" (all its songs), or nothing for an empty new playlist. Each says how it went with
+    // notice() or the player bar's error, and lists that changed reload (playlistChanged).
+    // Songs already in the playlist are left out, as in other players.
+    Q_INVOKABLE void addToPlaylist(const QString &playlistId, const QString &kind, const QString &id);
+    Q_INVOKABLE void newPlaylist(const QString &name, const QString &kind = {}, const QString &id = {});
+    // The song at `index` of the playlist as the server lists it.
+    Q_INVOKABLE void removeFromPlaylist(const QString &playlistId, int index);
+    Q_INVOKABLE void renamePlaylist(const QString &playlistId, const QString &name);
+    Q_INVOKABLE void deletePlaylist(const QString &playlistId);
+    // Whether the user may change the playlist: their own, unless the server says otherwise.
+    bool canEdit(const Playlist &playlist) const;
     // Plays 500 random songs from the whole library (the server picks them).
     Q_INVOKABLE void shuffleLibrary();
     // Instant Mix (docs/design.md, "Instant Mix"): the artist and similar artists, mixed. Always
@@ -93,8 +106,15 @@ signals:
     void lrclibChanged();
     // A song, album or artist was starred or unstarred; every list showing it follows.
     void starChanged(const QString &id, bool starred);
+    // A playlist's songs or name changed.
+    void playlistChanged(const QString &id);
+    void playlistDeleted(const QString &id);
+    // A short confirmation over the player bar ("Added to Road Trip").
+    void notice(const QString &text);
 
 private:
+    // The ids of the songs `kind` and `id` name (see addToPlaylist); `then` runs only on success.
+    void songIdsOf(const QString &kind, const QString &id, std::function<void(QStringList)> then);
     void startMix(const QString &artistId, const QString &artistName, const std::optional<Song> &seed);
     void setStarred(int item, const QString &id, bool starred);
     void reportError(const QString &error);

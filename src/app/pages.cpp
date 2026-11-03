@@ -72,6 +72,7 @@ void LibraryQuery::componentComplete()
         reload();
     });
     connect(m_library, &Library::starChanged, this, &LibraryQuery::onStarChanged);
+    connect(m_library, &Library::playlistChanged, this, &LibraryQuery::onPlaylistChanged);
     reload();
 }
 
@@ -455,6 +456,17 @@ QString PlaylistDetails::updated() const
 QString PlaylistDetails::summary() const
 {
     return songSummary(m_songs.items(), false);
+}
+
+bool PlaylistDetails::editable() const
+{
+    return !m_playlist.id.isEmpty() && library() && library()->canEdit(m_playlist);
+}
+
+void PlaylistDetails::onPlaylistChanged(const QString &id)
+{
+    if (id == m_id)
+        reload();
 }
 
 void PlaylistDetails::fetch()

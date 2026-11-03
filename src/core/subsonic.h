@@ -113,6 +113,8 @@ struct Playlist {
     int songCount = 0;
     int duration = 0; // seconds
     QDateTime changed;
+    // Navidrome: the user may not change it (another user's public playlist).
+    bool readonly = false;
 };
 
 struct AlbumWithSongs {
@@ -284,6 +286,15 @@ public:
     void starred(Done<Starred> done);
     void playlists(Done<QList<Playlist>> done);
     void playlist(const QString &id, Done<PlaylistWithSongs> done);
+    // createPlaylist: a new playlist of the user's with `songIds`. The answer is the new playlist
+    // (Subsonic 1.14 and later); an older server sends none, and its id is empty.
+    void createPlaylist(const QString &name, const QStringList &songIds, Done<Playlist> done);
+    // updatePlaylist: renames it when `name` is not empty, removes the songs at `removeIndexes`
+    // (their places before the change) and appends `addIds`. Sent as a POST form when the server
+    // takes one: an album's worth of ids makes a long URL.
+    void updatePlaylist(const QString &id, const QString &name, const QStringList &addIds,
+                        const QList<int> &removeIndexes, std::function<void(QString error)> done);
+    void deletePlaylist(const QString &id, std::function<void(QString error)> done);
     // One page of songs from search3. An empty query lists every song (Navidrome, gonic).
     void searchSongs(const QString &query, int size, int offset, Done<QList<Song>> done);
     // search3 for the search palette: up to `artists`, `albums` and `songs` of each.
@@ -314,6 +325,8 @@ public:
 private:
     QNetworkReply *get(const QString &endpoint, const QUrlQuery &params);
     QNetworkReply *post(const QString &endpoint, const QUrlQuery &params);
+    // A POST form when the server takes one, else a GET; done with the envelope's error.
+    void send(const QString &endpoint, const QUrlQuery &params, std::function<void(QString error)> done);
     void callJson(const QString &endpoint, const QUrlQuery &params,
                   std::function<void(ApiResult)> done);
     // callJson with the body parsed by `parse`; an error leaves the value default-constructed.

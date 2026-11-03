@@ -205,7 +205,17 @@ class PlaylistModel : public ListModel
     LEGATO_LIST_MODEL_ROWS(Playlist)
 
 public:
-    enum Role { IdRole = Qt::UserRole + 1, NameRole, CommentRole, OwnerRole, CoverArtRole, SongCountRole, HueRole };
+    enum Role {
+        IdRole = Qt::UserRole + 1,
+        NameRole,
+        CommentRole,
+        OwnerRole,
+        CoverArtRole,
+        SongCountRole,
+        HueRole,
+        // The user's own: songs can be added and removed, and it can be renamed and deleted.
+        EditableRole,
+    };
 
     QVariant data(const QModelIndex &index, int role) const override;
     QHash<int, QByteArray> roleNames() const override;

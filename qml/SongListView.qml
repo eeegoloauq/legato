@@ -18,6 +18,8 @@ ListView {
     property string from
     property string mode: "list"
     property string albumArtist
+    // A playlist of the user's: its songs' menus offer Remove from Playlist.
+    property string playlistId
     property int selected: -1
     property ContentPage findPage: null
     readonly property alias filter: songFilter
@@ -152,6 +154,7 @@ ListView {
         row: songFilter.sourceRow(index)
         mode: list.mode
         albumArtist: list.albumArtist
+        playlistId: list.playlistId
         selected: index === list.selected
         onSelectRequested: {
             list.selected = index

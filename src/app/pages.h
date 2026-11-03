@@ -49,6 +49,8 @@ protected:
     // Forgets what the previous server sent.
     virtual void clear() {}
     virtual void onStarChanged(const QString &id, bool starred) = 0;
+    // A playlist's songs or name changed.
+    virtual void onPlaylistChanged(const QString &) {}
 
     Library *library() const { return m_library; }
     SubsonicClient *client() const;
@@ -325,12 +327,15 @@ class PlaylistDetails : public LibraryQuery
     // "Updated 3 March 2026", or empty when the server does not say.
     Q_PROPERTY(QString updated READ updated NOTIFY changed)
     Q_PROPERTY(QString summary READ summary NOTIFY changed)
+    // The user's own: songs can be removed, and it can be renamed and deleted.
+    Q_PROPERTY(bool editable READ editable NOTIFY changed)
     Q_PROPERTY(legato::SongModel *songs READ songs CONSTANT)
 
 public:
     using LibraryQuery::LibraryQuery;
 
     QString playlistId() const { return m_id; }
+    bool editable() const;
     void setPlaylistId(const QString &id);
     QString name() const { return m_playlist.name; }
     QString comment() const { return m_playlist.comment; }
@@ -349,6 +354,7 @@ protected:
     bool canFetch() const override { return !m_id.isEmpty(); }
     void clear() override;
     void onStarChanged(const QString &id, bool starred) override { m_songs.setStarred(id, starred); }
+    void onPlaylistChanged(const QString &id) override;
 
 private:
     QString m_id;

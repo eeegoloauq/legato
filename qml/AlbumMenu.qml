@@ -22,6 +22,11 @@ PopupMenu {
         text: qsTr("Add to Queue")
         onTriggered: Library.queueAlbum(menu.albumId, false)
     }
+    PlaylistSubmenu {
+        kind: "album"
+        itemId: menu.albumId
+        suggestion: menu.name
+    }
     // The album artist's mix: an album has no mix of its own on the server.
     Action {
         text: qsTr("Instant Mix")

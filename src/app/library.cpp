@@ -11,6 +11,7 @@
 #include <QDateTime>
 #include <QNetworkAccessManager>
 #include <QRandomGenerator>
+#include <QSet>
 #include <QStandardPaths>
 
 using namespace Qt::Literals::StringLiterals;
@@ -103,8 +104,129 @@ void Library::loadPlaylists()
         return;
     m_client->playlists([this, generation = m_generation](QList<Playlist> playlists, const QString &error) {
         // A failure keeps the list there was; the playlists page says what went wrong.
-        if (generation == m_generation && error.isEmpty())
-            m_playlists.set(std::move(playlists));
+        if (generation != m_generation || !error.isEmpty())
+            return;
+        for (Playlist &playlist : playlists)
+            playlist.readonly = !canEdit(playlist);
+        m_playlists.set(std::move(playlists));
+    });
+}
+
+bool Library::canEdit(const Playlist &playlist) const
+{
+    // Navidrome lists other users' public playlists too, and marks them read only. Other servers
+    // only name the owner.
+    return !playlist.readonly && (playlist.owner.isEmpty() || playlist.owner == m_client->credentials().username);
+}
+
+void Library::songIdsOf(const QString &kind, const QString &id, std::function<void(QStringList)> then)
+{
+    if (kind == "song"_L1)
+        return then({id});
+    if (kind != "album"_L1)
+        return then({});
+    m_client->album(id, [this, then = std::move(then), generation = m_generation](const AlbumWithSongs &album, const QString &error) {
+        if (generation != m_generation)
+            return;
+        if (!error.isEmpty())
+            return reportError(error);
+        QStringList ids;
+        for (const Song &song : album.songs)
+            ids.append(song.id);
+        then(ids);
+    });
+}
+
+void Library::addToPlaylist(const QString &playlistId, const QString &kind, const QString &id)
+{
+    if (!configured() || playlistId.isEmpty())
+        return;
+    songIdsOf(kind, id, [this, playlistId, generation = m_generation](const QStringList &ids) {
+        // What the playlist holds now, so a song is not added twice.
+        m_client->playlist(playlistId, [this, playlistId, ids, generation](const PlaylistWithSongs &playlist, const QString &error) {
+            if (generation != m_generation)
+                return;
+            if (!error.isEmpty())
+                return reportError(error);
+            QSet<QString> present;
+            for (const Song &song : playlist.songs)
+                present.insert(song.id);
+            QStringList added;
+            for (const QString &song : ids) {
+                if (!present.contains(song) && !added.contains(song))
+                    added.append(song);
+            }
+            const QString name = playlist.playlist.name;
+            if (added.isEmpty())
+                return emit notice(ids.size() == 1 ? tr("Already in %1").arg(name) : tr("All of these are already in %1").arg(name));
+            m_client->updatePlaylist(playlistId, {}, added, {}, [this, playlistId, name, generation](const QString &error) {
+                if (generation != m_generation)
+                    return;
+                if (!error.isEmpty())
+                    return reportError(error);
+                emit notice(tr("Added to %1").arg(name));
+                emit playlistChanged(playlistId);
+                loadPlaylists();
+            });
+        });
+    });
+}
+
+void Library::newPlaylist(const QString &name, const QString &kind, const QString &id)
+{
+    if (!configured() || name.trimmed().isEmpty())
+        return;
+    songIdsOf(kind, id, [this, name = name.trimmed(), generation = m_generation](const QStringList &ids) {
+        m_client->createPlaylist(name, ids, [this, name, generation](const Playlist &, const QString &error) {
+            if (generation != m_generation)
+                return;
+            if (!error.isEmpty())
+                return reportError(error);
+            emit notice(tr("Created %1").arg(name));
+            loadPlaylists();
+        });
+    });
+}
+
+void Library::removeFromPlaylist(const QString &playlistId, int index)
+{
+    if (!configured() || playlistId.isEmpty() || index < 0)
+        return;
+    m_client->updatePlaylist(playlistId, {}, {}, {index}, [this, playlistId, generation = m_generation](const QString &error) {
+        if (generation != m_generation)
+            return;
+        if (!error.isEmpty())
+            return reportError(error);
+        emit playlistChanged(playlistId);
+        loadPlaylists();
+    });
+}
+
+void Library::renamePlaylist(const QString &playlistId, const QString &name)
+{
+    if (!configured() || playlistId.isEmpty() || name.trimmed().isEmpty())
+        return;
+    m_client->updatePlaylist(playlistId, name.trimmed(), {}, {}, [this, playlistId, generation = m_generation](const QString &error) {
+        if (generation != m_generation)
+            return;
+        if (!error.isEmpty())
+            return reportError(error);
+        emit playlistChanged(playlistId);
+        loadPlaylists();
+    });
+}
+
+void Library::deletePlaylist(const QString &playlistId)
+{
+    if (!configured() || playlistId.isEmpty())
+        return;
+    m_client->deletePlaylist(playlistId, [this, playlistId, generation = m_generation](const QString &error) {
+        if (generation != m_generation)
+            return;
+        if (!error.isEmpty())
+            return reportError(error);
+        emit playlistDeleted(playlistId);
+        loadPlaylists();
     });
 }
 

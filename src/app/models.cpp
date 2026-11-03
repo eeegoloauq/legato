@@ -193,6 +193,8 @@ QVariant PlaylistModel::data(const QModelIndex &index, int role) const
         return playlist.songCount;
     case HueRole:
         return hueOf(playlist.id);
+    case EditableRole:
+        return !playlist.readonly;
     }
     return {};
 }
@@ -200,7 +202,8 @@ QVariant PlaylistModel::data(const QModelIndex &index, int role) const
 QHash<int, QByteArray> PlaylistModel::roleNames() const
 {
     return {{IdRole, "playlistId"}, {NameRole, "name"}, {CommentRole, "comment"}, {OwnerRole, "owner"},
-            {CoverArtRole, "coverArt"}, {SongCountRole, "songCount"}, {HueRole, "hue"}};
+            {CoverArtRole, "coverArt"}, {SongCountRole, "songCount"}, {HueRole, "hue"},
+            {EditableRole, "editable"}};
 }
 
 // SongFilter

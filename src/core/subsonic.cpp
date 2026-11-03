@@ -276,7 +276,8 @@ Playlist parsePlaylistObject(const QJsonObject &o)
             o.value("coverArt"_L1).toString(),
             o.value("songCount"_L1).toInt(),
             o.value("duration"_L1).toInt(),
-            parseDate(o.value("changed"_L1))};
+            parseDate(o.value("changed"_L1)),
+            o.value("readonly"_L1).toBool()};
 }
 
 } // namespace
@@ -707,13 +708,53 @@ void SubsonicClient::savePlayQueue(const QStringList &ids, const QString &curren
         params.addQueryItem(u"current"_s, current);
         params.addQueryItem(u"position"_s, QString::number(std::max<qint64>(0, positionMs)));
     }
-    QNetworkReply *reply = m_formPost ? post(u"savePlayQueue"_s, params) : get(u"savePlayQueue"_s, params);
+    send(u"savePlayQueue"_s, params, std::move(done));
+}
+
+void SubsonicClient::send(const QString &endpoint, const QUrlQuery &params, std::function<void(QString)> done)
+{
+    QNetworkReply *reply = m_formPost ? post(endpoint, params) : get(endpoint, params);
     connect(reply, &QNetworkReply::finished, this, [reply, done = std::move(done)] {
         reply->deleteLater();
         if (reply->error() != QNetworkReply::NoError)
             return done(networkErrorText(reply));
         done(subsonic::parseEnvelope(reply->readAll()).error);
     });
+}
+
+void SubsonicClient::createPlaylist(const QString &name, const QStringList &songIds, Done<Playlist> done)
+{
+    QUrlQuery params{{u"name"_s, name}};
+    for (const QString &id : songIds)
+        params.addQueryItem(u"songId"_s, id);
+    QNetworkReply *reply = m_formPost ? post(u"createPlaylist"_s, params) : get(u"createPlaylist"_s, params);
+    connect(reply, &QNetworkReply::finished, this, [reply, done = std::move(done)] {
+        reply->deleteLater();
+        if (reply->error() != QNetworkReply::NoError)
+            return done({}, networkErrorText(reply));
+        const ApiResult result = subsonic::parseEnvelope(reply->readAll());
+        if (!result.error.isEmpty())
+            return done({}, result.error);
+        done(subsonic::parsePlaylist(result.body).playlist, {});
+    });
+}
+
+void SubsonicClient::updatePlaylist(const QString &id, const QString &name, const QStringList &addIds,
+                                    const QList<int> &removeIndexes, std::function<void(QString)> done)
+{
+    QUrlQuery params{{u"playlistId"_s, id}};
+    if (!name.isEmpty())
+        params.addQueryItem(u"name"_s, name);
+    for (int index : removeIndexes)
+        params.addQueryItem(u"songIndexToRemove"_s, QString::number(index));
+    for (const QString &song : addIds)
+        params.addQueryItem(u"songIdToAdd"_s, song);
+    send(u"updatePlaylist"_s, params, std::move(done));
+}
+
+void SubsonicClient::deletePlaylist(const QString &id, std::function<void(QString)> done)
+{
+    send(u"deletePlaylist"_s, QUrlQuery{{u"id"_s, id}}, std::move(done));
 }
 
 void SubsonicClient::setStarred(Item item, const QString &id, bool starred, std::function<void(QString)> done)

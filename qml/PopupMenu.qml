@@ -67,11 +67,19 @@ Menu {
         leftPadding: 10
         rightPadding: 10
         indicator: Item {}
-        arrow: Item {}
+        // A submenu's row ends in a chevron.
+        arrow: Text {
+            x: item.width - width - item.rightPadding
+            y: (item.height - height) / 2
+            visible: item.subMenu !== null
+            text: "›"
+            color: Theme.text2
+            font.pixelSize: Theme.fs + 2
+        }
 
         contentItem: Item {
             readonly property real dotSpace: dot.visible ? 17 : 0
-            readonly property real checkSpace: item.checked ? 24 : 0
+            readonly property real checkSpace: item.checked || item.subMenu ? 24 : 0
 
             implicitWidth: dotSpace + label.implicitWidth + checkSpace
             implicitHeight: label.implicitHeight

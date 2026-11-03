@@ -166,6 +166,7 @@ Item {
             required property string name
             required coverArt
             required hue
+            required property bool editable
 
             cover: true
             text: name
@@ -175,6 +176,7 @@ Item {
                 playlistMenu.name = playlistRow.name
                 playlistMenu.coverArt = playlistRow.coverArt
                 playlistMenu.hue = playlistRow.hue
+                playlistMenu.editable = playlistRow.editable
                 playlistMenu.openAt(null, at.x, at.y)
             }
         }

@@ -14,6 +14,7 @@ Item {
     required property string coverArt
     required property int songCount
     required property int hue
+    required property bool editable
     property real coverSize: 180
     property bool keyFocus: false
 
@@ -86,6 +87,7 @@ Item {
                 name: card.name
                 coverArt: card.coverArt
                 hue: card.hue
+                editable: card.editable
                 onClosed: menu.active = false
             }
         }

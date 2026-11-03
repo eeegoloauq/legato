@@ -38,6 +38,7 @@ ContentPage {
 
         songs: playlist.songs
         from: playlist.name
+        playlistId: playlist.editable ? playlist.playlistId : ""
         findPage: page
 
         header: PageHero {
@@ -88,6 +89,7 @@ ContentPage {
                     name: playlist.name
                     coverArt: playlist.coverArt
                     hue: playlist.hue
+                    editable: playlist.editable
                 }
             }
         }

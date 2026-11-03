@@ -25,11 +25,19 @@ ContentPage {
 
             PageHeading {
                 text: page.title
+
+                PushButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    glyph: "add"
+                    text: qsTr("New Playlist")
+                    onClicked: Navigation.askName(qsTr("New Playlist"), qsTr("Create"), "",
+                                                  name => Library.newPlaylist(name))
+                }
             }
 
             Text {
                 visible: grid.count === 0
-                text: qsTr("Playlists you make on your server or in another app appear here.")
+                text: qsTr("Make one with New Playlist, or from a song's or an album's menu: Add to Playlist.")
                 color: Theme.text2
                 bottomPadding: 16
             }

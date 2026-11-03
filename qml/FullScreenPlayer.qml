@@ -247,6 +247,11 @@ Rectangle {
                             enabled: Player.artists.length > 0
                             onTriggered: Library.instantMixFromPlaying()
                         }
+                        PlaylistSubmenu {
+                            kind: "song"
+                            itemId: Player.songId
+                            suggestion: Player.title
+                        }
 
                         MenuDivider {}
 

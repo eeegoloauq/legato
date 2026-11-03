@@ -3,7 +3,7 @@ import QtQuick.Controls.Basic
 import Legato
 
 // A song's menu (docs/design.md, "Menus"): from "…", a right click or Shift+F10 on a row, or a right
-// click on an Up Next row. Add to Playlist comes with its feature.
+// click on an Up Next row. On a playlist of the user's, Remove from Playlist comes first.
 PopupMenu {
     id: menu
 
@@ -11,6 +11,8 @@ PopupMenu {
     property int row: -1
     // `songs` is Player.upNext: Remove from Up Next comes first.
     property bool upNext: false
+    // `songs` is this playlist of the user's: Remove from Playlist comes first.
+    property string playlistId
     property string songId
     property string songTitle
     property string artist
@@ -22,12 +24,19 @@ PopupMenu {
         text: qsTr("Remove from Up Next")
         onTriggered: Player.removeAt(Player.queueIndex + 1 + menu.row)
     }
+    readonly property Action removeFromPlaylist: Action {
+        text: qsTr("Remove from Playlist")
+        onTriggered: Library.removeFromPlaylist(menu.playlistId, menu.row)
+    }
     readonly property MenuDivider removeDivider: MenuDivider {}
 
     Component.onCompleted: {
-        if (!upNext)
+        if (upNext)
+            insertAction(0, removeAction)
+        else if (playlistId !== "")
+            insertAction(0, removeFromPlaylist)
+        else
             return
-        insertAction(0, removeAction)
         insertItem(1, removeDivider)
     }
 
@@ -38,6 +47,11 @@ PopupMenu {
     Action {
         text: qsTr("Add to Queue")
         onTriggered: Library.queueFrom(menu.songs, menu.row, false)
+    }
+    PlaylistSubmenu {
+        kind: "song"
+        itemId: menu.songId
+        suggestion: menu.songTitle
     }
     Action {
         text: qsTr("Instant Mix")

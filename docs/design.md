@@ -120,13 +120,15 @@ match plays the whole album or playlist from that song. Elsewhere Ctrl+F opens t
 
 ## Menus
 
-- Song: Play Next, Add to Queue, Instant Mix, Go to Album, Go to Artist, favorite, Get Info,
-  Search on Spotify.
-- Album: Play Next, Add to Queue, Instant Mix, Go to Artist, favorite, Pin to Sidebar, Get Info,
-  Search on Spotify.
-- Artist: Instant Mix, Pin to Sidebar, Search on Spotify. Playlist: Play, Shuffle, Pin to Sidebar.
+- Song: Play Next, Add to Queue, Add to Playlist ›, Instant Mix, Go to Album, Go to Artist,
+  favorite, Get Info, Search on Spotify.
+- Album: Play Next, Add to Queue, Add to Playlist ›, Instant Mix, Go to Artist, favorite, Pin to
+  Sidebar, Get Info, Search on Spotify.
+- Artist: Instant Mix, Pin to Sidebar, Search on Spotify. Playlist: Play, Shuffle, Pin to Sidebar,
+  and on the listener's own: Rename…, Delete Playlist….
 - A right click opens the same menu as "…" wherever there is one. An Up Next row's menu starts with
-  Remove from Up Next.
+  Remove from Up Next; a song's menu on the listener's own playlist starts with Remove from
+  Playlist.
 - A right-click menu opens at the pointer and flips up or left where the window ends. "…" opens its
   menu under the button, or over it where there is no room.
 - Play Next and Add to Queue with nothing playing start playing.

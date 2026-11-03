@@ -76,7 +76,14 @@ PLAYLISTS = [
      "changed": "2026-09-02T08:00:00Z", "songs": [f"a{i}-s2" for i in range(3, 300, 13)]},
     {"id": "p3", "name": "Empty For Now", "comment": "", "owner": USER, "changed": "2026-11-01T10:00:00Z",
      "songs": []},
+    # Another user's public playlist: listed, read only, as Navidrome sends it.
+    {"id": "p4", "name": "Shared by Sam", "comment": "", "owner": "sam", "readonly": True,
+     "changed": "2026-10-20T10:00:00Z", "songs": [f"a{i}-s3" for i in range(5, 200, 31)]},
 ]
+
+
+def now():
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
 def starred(item, key):
@@ -327,6 +334,26 @@ class Handler(BaseHTTPRequestHandler):
             if not p:
                 return self.api(error=(70, "Playlist not found"))
             return self.api({"playlist": playlist(p, entries=True)})
+        if endpoint == "createPlaylist":
+            new = {"id": f"p{max(int(p['id'][1:]) for p in PLAYLISTS) + 1}", "name": q.get("name", ""),
+                   "comment": "", "owner": USER, "changed": now(), "songs": all_q.get("songId", [])}
+            PLAYLISTS.append(new)
+            return self.api({"playlist": playlist(new, entries=True)})
+        if endpoint in ("updatePlaylist", "deletePlaylist"):
+            p = next((p for p in PLAYLISTS if p["id"] == q.get("playlistId", q.get("id"))), None)
+            if not p:
+                return self.api(error=(70, "Playlist not found"))
+            if p["owner"] != USER:
+                return self.api(error=(50, "You are not allowed to change this playlist"))
+            if endpoint == "deletePlaylist":
+                PLAYLISTS.remove(p)
+                return self.api()
+            if "name" in q:
+                p["name"] = q["name"]
+            drop = {int(i) for i in all_q.get("songIndexToRemove", [])}
+            p["songs"] = [s for i, s in enumerate(p["songs"]) if i not in drop] + all_q.get("songIdToAdd", [])
+            p["changed"] = now()
+            return self.api()
         if endpoint == "search3":
             size, offset = min(int(q.get("songCount", 20)), 500), int(q.get("songOffset", 0))
             query = q.get("query", "").strip('"').lower()
