@@ -1,0 +1,19 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Build output and the release bundle
+/build/
+/dist/
+CMakeUserPresets.json
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Tool output
+.playwright-mcp/
+*.log

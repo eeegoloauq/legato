@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The app's AppStream entry and the one place release notes are written: release-notes.py turns
+     <releases> into the GitHub release text and the RPM changelog. -->
+<component type="desktop-application">
+  <id>io.github.eeegoloauq.legato</id>
+  <name>Legato</name>
+  <summary>Play the music on your Navidrome or OpenSubsonic server</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="io.github.eeegoloauq">
+    <name>eeegoloauq</name>
+  </developer>
+
+  <description>
+    <p>
+      Legato is a simple music player for Navidrome and other OpenSubsonic servers, with smooth
+      mixing between songs. Large covers, a floating player bar and few settings.
+    </p>
+    <ul>
+      <li>Albums, artists, songs, playlists and favorites from your server</li>
+      <li>Automatic mixing between songs, and albums without gaps</li>
+      <li>Instant Mix from any artist, album or song</li>
+      <li>Synced lyrics from the server, or from LRCLIB if you allow it</li>
+      <li>Your queue saved on the server and picked up where you left it</li>
+      <li>A search palette and full keyboard control</li>
+      <li>Media keys and the desktop's player controls</li>
+      <li>Several servers, with passwords in the system keychain</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">io.github.eeegoloauq.legato.desktop</launchable>
+  <provides>
+    <binary>legato</binary>
+  </provides>
+
+  <url type="homepage">https://github.com/eeegoloauq/legato</url>
+  <url type="bugtracker">https://github.com/eeegoloauq/legato/issues</url>
+  <url type="vcs-browser">https://github.com/eeegoloauq/legato</url>
+
+  <categories>
+    <category>AudioVideo</category>
+    <category>Audio</category>
+    <category>Player</category>
+  </categories>
+  <keywords>
+    <keyword>music</keyword>
+    <keyword>navidrome</keyword>
+    <keyword>subsonic</keyword>
+    <keyword>opensubsonic</keyword>
+  </keywords>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#e9e9ec</color>
+    <color type="primary" scheme_preference="dark">#1a1a1d</color>
+  </branding>
+
+  <requires>
+    <display_length compare="ge">768</display_length>
+    <internet>always</internet>
+  </requires>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="0.1.0" date="2026-11-03">
+      <description>
+        <p>The first release.</p>
+        <ul>
+          <li>Home, Recently Added, Albums, Artists, Songs, Favorites and Playlists pages</li>
+          <li>Gapless playback, Fixed and Automatic crossfade</li>
+          <li>Instant Mix, lyrics with an optional LRCLIB fallback, Get Info and Find in page</li>
+          <li>Queue saved on the server and restored at start</li>
+          <li>Search palette, keyboard shortcuts, media keys and MPRIS</li>
+          <li>Several servers, passwords in the system keychain</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>

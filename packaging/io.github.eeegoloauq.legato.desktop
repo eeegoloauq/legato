@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Legato
+GenericName=Music Player
+Comment=Play the music on your Navidrome or OpenSubsonic server
+Exec=legato
+Icon=io.github.eeegoloauq.legato
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+Keywords=music;player;navidrome;subsonic;opensubsonic;lyrics;crossfade;
+StartupNotify=true
+StartupWMClass=io.github.eeegoloauq.legato

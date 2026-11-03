@@ -1,0 +1,37 @@
+# The Arch package, built from the tarball of build-dist.sh the way the RPM is (see legato.spec).
+# Build it with packaging/build-arch.sh, which sets the version and the checksum.
+pkgname=legato
+pkgver=0.1.0
+# The tarball's version: a beta's keeps the dash pkgver cannot have.
+_tarver=$pkgver
+pkgrel=1
+pkgdesc='Play the music on your Navidrome or OpenSubsonic server'
+arch=(x86_64)
+url='https://github.com/eeegoloauq/legato'
+license=(MIT)
+# What the bundle links outside itself, read off its DT_NEEDED entries: Qt and ICU are in the
+# bundle. mpv is named for libmpv, qtkeychain-qt6 for the keychain; openssl is the TLS that Qt's
+# network opens at run time.
+depends=(
+  brotli dbus fontconfig freetype2 gcc-libs glib2 glibc krb5 libglvnd libx11
+  libxcb libxkbcommon libxkbcommon-x11 mpv openssl qtkeychain-qt6 wayland xcb-util
+  xcb-util-cursor xcb-util-image xcb-util-keysyms xcb-util-renderutil
+  xcb-util-wm zlib zstd
+)
+# The files go in as the tarball has them, so the package ships the same bytes as every other
+# release file.
+options=(!strip !debug)
+source=("$pkgname-$_tarver-linux-x86_64.tar.gz")
+
+package() {
+  cd "$pkgname-$_tarver-linux-x86_64"
+  # The bundle stays in one piece: the binary finds Qt at $ORIGIN/../lib.
+  install -d "$pkgdir/usr/lib/$pkgname"
+  cp -a bundle/. "$pkgdir/usr/lib/$pkgname/"
+  install -Dm755 legato.sh "$pkgdir/usr/bin/$pkgname"
+  install -Dm644 io.github.eeegoloauq.legato.desktop -t "$pkgdir/usr/share/applications"
+  install -Dm644 io.github.eeegoloauq.legato.metainfo.xml -t "$pkgdir/usr/share/metainfo"
+  install -d "$pkgdir/usr/share/icons"
+  cp -a icons/hicolor "$pkgdir/usr/share/icons/"
+  install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+}

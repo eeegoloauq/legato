@@ -1,0 +1,161 @@
+# What a tag produces: a tarball anyone can unpack, an RPM Fedora can install, a package Arch can,
+# and a Windows installer, each carrying the Qt the app was tested with. All come out of packaging/,
+# which is also what a person runs by hand: the workflow only runs those scripts.
+#
+# No job here restores a cache: a release is built from what the pinned versions download, not from
+# state an earlier run left behind (a cache is a way into the artifact). ci.yml on main caches.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  # To rebuild a release by hand against an existing tag.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  dist:
+    # Named, not latest: the machine the bundle is built on sets the oldest glibc it runs on.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      # What building against Qt needs from the machine; libmpv and QtKeychain are linked, not
+      # carried, and rsvg renders the icons.
+      - name: build dependencies
+        timeout-minutes: 10
+        run: |
+          echo 'Acquire::Retries "3"; Acquire::http::Timeout "30"; Acquire::https::Timeout "30";' |
+            sudo tee /etc/apt/apt.conf.d/99legato-retries >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build pkg-config \
+            libgl-dev libegl-dev libxkbcommon-dev libmpv-dev qtkeychain-qt6-dev librsvg2-bin
+      - name: qt
+        run: echo "CMAKE_PREFIX_PATH=$(scripts/install-qt.sh)" >> "$GITHUB_ENV"
+      - name: build
+        run: packaging/build-dist.sh "${GITHUB_REF_NAME#v}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tarball
+          path: dist/*.tar.gz
+
+  rpm:
+    needs: dist
+    runs-on: ubuntu-latest
+    # Fedora's own container: the spec's %check runs Fedora's validators.
+    container: fedora:44
+    steps:
+      - uses: actions/checkout@v7
+      - run: dnf install -y rpm-build desktop-file-utils libappstream-glib tar python3
+      - uses: actions/download-artifact@v8
+        with:
+          name: tarball
+          path: dist
+      - run: packaging/build-rpm.sh "${GITHUB_REF_NAME#v}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rpm
+          path: dist/rpmbuild/RPMS/**/*.rpm
+
+  arch:
+    needs: dist
+    runs-on: ubuntu-latest
+    # Arch's own container, for makepkg and the compression it expects.
+    container: archlinux:base-devel
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: tarball
+          path: dist
+      # makepkg refuses to run as root, which is what a container job is.
+      - run: |
+          useradd -m builder
+          chown -R builder .
+          su builder -c "packaging/build-arch.sh '${GITHUB_REF_NAME#v}'"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: arch
+          path: dist/*.pkg.tar.zst
+
+  windows:
+    runs-on: windows-2025
+    # Git Bash, so build-windows.sh is the same script by hand and here.
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      # Qt, its MinGW and Ninja; Inno Setup is on the image, but not on PATH.
+      - name: qt
+        run: |
+          dir=$(cygpath -u "$RUNNER_TEMP")/qt
+          qt=$(scripts/install-qt.sh "$dir")
+          for path in "$qt/bin" "$dir/Tools/mingw1310_64/bin" "$dir/Tools/Ninja"; do
+            cygpath -w "$path"
+          done >> "$GITHUB_PATH"
+          echo 'C:\Program Files (x86)\Inno Setup 6' >> "$GITHUB_PATH"
+          echo "CMAKE_PREFIX_PATH=$(cygpath -m "$qt")" >> "$GITHUB_ENV"
+      - run: packaging/build-windows.sh "${GITHUB_REF_NAME#v}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows
+          path: dist/*.exe
+
+  # Waits for every build and the checks: the release appears whole and tested, with one SHA256SUMS
+  # over all of its files, or not at all.
+  publish:
+    needs: [checks, dist, rpm, arch, windows]
+    runs-on: ubuntu-latest
+    # The only job that writes to the repository.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+      - name: collect
+        run: |
+          mkdir -p dist
+          find artifacts -type f \( -name '*.tar.gz' -o -name '*.rpm' \
+            -o -name '*.pkg.tar.zst' -o -name '*.exe' \) -exec cp {} dist/ \;
+          cd dist && sha256sum * > SHA256SUMS
+      # The tag message is the headline; the items are the release's in the AppStream file.
+      - name: notes from the tag message and the AppStream file
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG" 2>/dev/null || true
+          { git tag -l --format='%(contents)' "$TAG"; echo
+            packaging/release-notes.py markdown "${TAG#v}"; } > "$RUNNER_TEMP/notes.md"
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: dist/*
+          body_path: ${{ runner.temp }}/notes.md
+          generate_release_notes: true
+          # A beta (v0.1.1-beta.1) is a pre-release: downloadable, but not the latest.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+      # A beta outlives nothing newer: the one just published replaces the betas before it, and a
+      # release its own. Their tags stay in git.
+      - name: remove older betas
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          current=${TAG#v}; current=${current%%-*}
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 200 \
+              --json tagName,isPrerelease \
+              --jq '.[] | select(.isPrerelease) | .tagName' |
+          while read -r tag; do
+            case $tag in v*) ;; *) continue ;; esac
+            base=${tag#v}; base=${base%%-*}
+            [ "$tag" = "$TAG" ] && continue
+            [ "$(printf '%s\n' "$base" "$current" | sort -V | tail -1)" = "$current" ] || continue
+            gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes
+          done
