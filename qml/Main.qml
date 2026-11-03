@@ -575,6 +575,13 @@ ApplicationWindow {
         enabled: Player.hasSong
         onActivated: Navigation.info("song", Player.songId)
     }
+    // The full-screen player's Esc is the window's, not the player's: a click on a slider or a
+    // menu that closes can leave the keyboard elsewhere, and Esc then did nothing.
+    Shortcut {
+        sequence: "Esc"
+        enabled: window.fullScreenOpen
+        onActivated: window.fullScreenOpen = false
+    }
     Shortcut {
         sequence: "Esc"
         enabled: window.panelOpen && !window.fullScreenOpen
