@@ -246,6 +246,14 @@ timeout, a 5xx) is asked for again after 2, 6 and 20 s, then every minute while 
 still waits for it; a 4xx, a cover scrolled past and one from the server before a switch are not.
 Without this a cover missed during a short drop stayed blank as long as its row was made.
 
+A decoded cover is held by the image showing it: Qt keeps the pixels and the texture while an
+`Image` refers to them, shown or not. A hidden `RoundedImage` (a page parked in the history, a
+closed popup) lets go of its cover, and shown again it reads it from the disk cache and decodes it
+again, within the 40 ms in which it shows without fading in. On 2026-11-05 under Xvfb, twelve pages
+with four kept ended at 280 MiB PSS holding their covers, 271 MiB letting them go and 262 MiB with
+one kept page; the covers' share grows with the square of the device pixel ratio. A cache of decoded
+covers in memory would have kept what letting go saves for at most 30 ms per page.
+
 Views build only what shows. Grids and carousels are item views, and Home is a ListView of rows (as
 lumeo's shelves), so a row is built when it comes near the screen and the ones below are built after
 it, in the background (`cacheBuffer`). A cover card is light: its play and "…" buttons are made on

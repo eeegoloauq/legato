@@ -7,11 +7,11 @@ import Legato
 // the size shown, in size steps; a new size keeps the old picture until the new one is decoded, so
 // resizing the window never blanks a cover.
 //
-// A new cover fades in over a neutral placeholder, unless it was decoded already (a page shown
-// again, a row scrolled back), which shows at once. With `crossfade` (the player bar, the full-screen
-// player) the old cover stays until the new one is ready and the new one fades in over it, so a
-// change of song never shows the placeholder, and the same picture under another id (songs of one
-// album on Navidrome) does not visibly change.
+// A new cover fades in over a neutral placeholder, unless it is ready within a frame or two (a page
+// shown again, a row scrolled back), which shows at once. With `crossfade` (the player bar, the
+// full-screen player) the old cover stays until the new one is ready and the new one fades in over
+// it, so a change of song never shows the placeholder, and the same picture under another id (songs
+// of one album on Navidrome) does not visibly change.
 Item {
     id: root
 
@@ -22,7 +22,10 @@ Item {
     // How long a crossfade takes; read when it starts.
     property int crossfadeMs: Theme.normalMs
 
-    readonly property string wanted: coverArt !== "" ? "image://cover/" + coverArt : ""
+    // Hidden, it lets go of its cover (a page parked in the history, a closed popup): Qt keeps
+    // the decoded copy and the texture for as long as an Image holds them. Shown again, the cover
+    // is read from the disk cache and decoded again, mostly faster than it would fade in.
+    readonly property string wanted: coverArt !== "" && visible ? "image://cover/" + coverArt : ""
     readonly property bool ready: front.ready && front.holds(wanted)
     readonly property int step: 50
     // When the front layer was given its cover, to tell a cover in memory from one being decoded.
@@ -60,7 +63,7 @@ Item {
                 front.source = wanted
             }
             if (front.ready && front.opacity === 0) {
-                // Decoded within a frame or two: it was in memory, so no fade.
+                // Ready within a frame or two (in memory, or on disk and small): no fade.
                 if (Date.now() - asked < 40)
                     front.opacity = 1
                 else

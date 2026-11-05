@@ -33,9 +33,12 @@ memory went and are not used.
 built-in ones (stats, console, select, auto profiles and others) load in every instance, each a Lua
 thread receiving every event. Each is turned off by its own option.
 
-**Hidden is not gone.** A kept page and a delegate in a view's cache buffer keep their covers, as the
-decoded copy and the GPU texture. Decoded covers live in one cache with a size in bytes, so memory
-has a ceiling however many pages are kept. A `cacheBuffer` is about one screen.
+**Hidden is not gone.** An `Image` keeps its decoded copy and its GPU texture while it is made,
+shown or not. A hidden `RoundedImage` lets go of its cover, so a kept page holds its rows but no
+covers; shown again, the covers come from the disk cache faster than they would fade in. There is
+no cache of decoded covers in memory: it would keep what letting go saves. A delegate in a view's
+cache buffer is visible and keeps its cover, so a `cacheBuffer` is about one screen; Home's five
+rows stay built so that each keeps where it was scrolled sideways.
 
 **Covers are decoded at the size shown.** `RoundedImage` asks for the longest side times the device
 pixel ratio and the provider scales while decoding. The 512 MB disk caches bound nothing in RAM.
