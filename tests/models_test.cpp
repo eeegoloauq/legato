@@ -200,6 +200,29 @@ private slots:
         QCOMPARE(filter.data(filter.index(2, 0), SongModel::DiscHeaderRole).toInt(), 2);
         QCOMPARE(SongFilter::fold(u"Sigur Rós Ágætis"_s), u"sigur ros agætis"_s);
     }
+
+    void findsTheLineBeingSung()
+    {
+        LyricsModel model;
+        QSignalSpy counts(&model, &LyricsModel::countChanged);
+        model.set({{{1000, u"one"_s}, {2500, QString()}, {4000, u"three"_s}}, true});
+        QCOMPARE(model.count(), 3);
+        QCOMPARE(counts.size(), 1);
+        QCOMPARE(model.data(model.index(1), LyricsModel::TimeRole).toDouble(), 2.5);
+        QCOMPARE(model.lineAt(0.5), -1);
+        QCOMPARE(model.lineAt(1.0), 0);
+        QCOMPARE(model.lineAt(2.499), 0);
+        QCOMPARE(model.lineAt(2.5), 1);
+        QCOMPARE(model.lineAt(600), 2);
+
+        // Lyrics that are not synced have no line being sung.
+        model.set({{{-1, u"one"_s}, {-1, u"two"_s}}, false});
+        QCOMPARE(model.lineAt(10), -1);
+        QCOMPARE(model.data(model.index(0), LyricsModel::TimeRole).toDouble(), -1.0);
+        model.clear();
+        QCOMPARE(model.count(), 0);
+        QCOMPARE(model.lineAt(10), -1);
+    }
 };
 
 QTEST_GUILESS_MAIN(ModelsTest)

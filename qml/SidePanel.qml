@@ -126,41 +126,53 @@ Rectangle {
         }
     }
 
+    // The queue and the lyrics are made while they show: closed, the panel would keep a list and
+    // its covers up to date with every song.
+
     // ---- Up Next
 
-    UpNextList {
-        id: queue
-
-        objectName: "queueList"
+    Loader {
         anchors.fill: parent
         anchors.topMargin: head.y + head.height + 4
         anchors.leftMargin: 10
         anchors.rightMargin: 10
-        visible: panel.page === "queue"
-    }
+        active: panel.visible && panel.page === "queue"
 
-    WheelScroll {
-        flickable: queue
+        sourceComponent: Item {
+            UpNextList {
+                id: queue
+
+                objectName: "queueList"
+                anchors.fill: parent
+            }
+
+            WheelScroll {
+                flickable: queue
+            }
+        }
     }
 
     // ---- Lyrics
 
-    LyricsView {
+    Loader {
         id: lyrics
 
-        objectName: "lyricsView"
         anchors.fill: parent
         anchors.topMargin: head.y + head.height
         anchors.leftMargin: 18
         anchors.rightMargin: 14
-        visible: panel.page === "lyrics"
+        active: panel.visible && panel.page === "lyrics"
+
+        sourceComponent: LyricsView {
+            objectName: "lyricsView"
+        }
     }
 
     Column {
         anchors.centerIn: lyrics
         width: lyrics.width - 20
         spacing: 6
-        visible: panel.page === "lyrics" && !Player.lyricsLoading && lyrics.empty
+        visible: panel.page === "lyrics" && !Player.lyricsLoading && Player.lyrics.count === 0
 
         Text {
             width: parent.width

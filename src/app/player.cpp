@@ -53,6 +53,7 @@ Player::Player(QObject *parent)
     : QObject(parent)
 {
     connect(this, &Player::queueChanged, this, &Player::syncUpNext);
+    connect(this, &Player::positionChanged, this, &Player::updateLyricsLine);
     m_fadeTimer.setInterval(FadeStepMs);
     m_fadeTimer.setTimerType(Qt::PreciseTimer);
     connect(&m_fadeTimer, &QTimer::timeout, this, &Player::fadeStep);
@@ -539,6 +540,7 @@ void Player::announceSong()
     m_lyrics.clear();
     m_lyricsSynced = false;
     emit lyricsChanged();
+    updateLyricsLine();
     updatePlaying();
     loadPalette();
 }
@@ -710,11 +712,20 @@ void Player::setLyrics(const QString &songId, const Lyrics &lyrics)
     if (songId != this->songId())
         return;
     m_lyricsFor = songId;
-    m_lyrics.clear();
-    for (const LyricLine &line : lyrics.lines)
-        m_lyrics.append(QVariantMap{{u"time"_s, line.start < 0 ? -1.0 : line.start / 1000.0}, {u"text"_s, line.text}});
+    m_lyrics.set(lyrics);
     m_lyricsSynced = lyrics.synced;
     emit lyricsChanged();
+    updateLyricsLine();
+}
+
+void Player::updateLyricsLine()
+{
+    // A line lights up a little before its time, with the voice rather than after it.
+    const int line = m_lyrics.lineAt(m_position + 0.15);
+    if (line == m_lyricsLine)
+        return;
+    m_lyricsLine = line;
+    emit lyricsLineChanged();
 }
 
 void Player::setStarred(const QString &songId, bool starred)

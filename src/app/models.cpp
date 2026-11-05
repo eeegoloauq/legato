@@ -1,6 +1,7 @@
 #include "models.h"
 
 #include <algorithm>
+#include <cmath>
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -24,6 +25,59 @@ QVariantList artistList(const QList<ArtistRef> &artists)
     for (const ArtistRef &artist : artists)
         out.append(QVariantMap{{u"id"_s, artist.id}, {u"name"_s, artist.name}});
     return out;
+}
+
+LyricsModel::LyricsModel(QObject *parent)
+    : QAbstractListModel(parent)
+{
+}
+
+QVariant LyricsModel::data(const QModelIndex &index, int role) const
+{
+    if (!checkIndex(index, CheckIndexOption::IndexIsValid | CheckIndexOption::ParentIsInvalid))
+        return {};
+    const LyricLine &line = m_lines.at(index.row());
+    switch (role) {
+    case TimeRole:
+        return line.start < 0 ? -1.0 : line.start / 1000.0;
+    case TextRole:
+        return line.text;
+    default:
+        return {};
+    }
+}
+
+QHash<int, QByteArray> LyricsModel::roleNames() const
+{
+    // "lyric": a delegate that is a button has a "text" of its own.
+    return {{TimeRole, "time"}, {TextRole, "lyric"}};
+}
+
+void LyricsModel::set(const Lyrics &lyrics)
+{
+    beginResetModel();
+    m_lines = lyrics.lines;
+    m_synced = lyrics.synced;
+    endResetModel();
+    emit countChanged();
+}
+
+void LyricsModel::clear()
+{
+    if (m_lines.isEmpty())
+        return;
+    set({});
+}
+
+int LyricsModel::lineAt(double seconds) const
+{
+    if (!m_synced)
+        return -1;
+    const auto ms = qint64(std::floor(seconds * 1000));
+    // Synced lines are in time order.
+    const auto after = std::upper_bound(m_lines.cbegin(), m_lines.cend(), ms,
+                                        [](qint64 t, const LyricLine &line) { return t < line.start; });
+    return int(after - m_lines.cbegin()) - 1;
 }
 
 ListModel::ListModel(QObject *parent)

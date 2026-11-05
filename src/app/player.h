@@ -78,9 +78,12 @@ class Player : public QObject
     Q_PROPERTY(int queueIndex READ queueIndex NOTIFY queueChanged)
     // The album or playlist the queue came from.
     Q_PROPERTY(QString playingFrom READ playingFrom NOTIFY queueChanged)
-    // The current song's lyrics as maps of time (seconds, -1 when unsynced) and text.
-    Q_PROPERTY(QVariantList lyrics READ lyrics NOTIFY lyricsChanged)
+    // The current song's lyrics.
+    Q_PROPERTY(legato::LyricsModel *lyrics READ lyrics CONSTANT)
     Q_PROPERTY(bool lyricsSynced READ lyricsSynced NOTIFY lyricsChanged)
+    // The line being sung, a little ahead of the position so it lights up with the voice; -1 before
+    // the first and for lyrics that are not synced. Changes only with the line.
+    Q_PROPERTY(int lyricsLine READ lyricsLine NOTIFY lyricsLineChanged)
     // True until the server has answered for the current song.
     Q_PROPERTY(bool lyricsLoading READ lyricsLoading NOTIFY lyricsChanged)
     // Three colors from the cover, most prominent first; empty without a song.
@@ -153,7 +156,8 @@ public:
     const Song &song() const;
     int queueIndex() const { return m_queue.position(); }
     QString playingFrom() const { return m_from; }
-    QVariantList lyrics() const { return m_lyrics; }
+    LyricsModel *lyrics() { return &m_lyrics; }
+    int lyricsLine() const { return m_lyricsLine; }
     bool lyricsSynced() const { return m_lyricsSynced; }
     bool lyricsLoading() const { return hasSong() && m_lyricsFor != songId(); }
     QVariantList palette() const { return m_palette; }
@@ -189,6 +193,7 @@ signals:
     void mixingChanged();
     void queueChanged();
     void lyricsChanged();
+    void lyricsLineChanged();
     void paletteChanged();
     void errorChanged();
     // The position jumped: a seek, or the song starting over on repeat. Not sent for a new song.
@@ -311,7 +316,10 @@ private:
     QByteArray m_planFor;
     std::optional<crossfade::Plan> m_autoPlan;
     bool m_keepAlbumsGapless = true;
-    QVariantList m_lyrics;
+    void updateLyricsLine();
+
+    LyricsModel m_lyrics;
+    int m_lyricsLine = -1;
     bool m_lyricsSynced = false;
     QString m_lyricsFor;
     QString m_paletteCover;

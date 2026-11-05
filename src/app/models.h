@@ -221,6 +221,39 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 };
 
+// The current song's lyrics (Player.lyrics): a row per line, with its time (seconds, -1 when not
+// synced) and lyric (its text).
+class LyricsModel : public QAbstractListModel
+{
+    Q_OBJECT
+    QML_ELEMENT
+    QML_UNCREATABLE("Lyrics come from Player.lyrics")
+    Q_PROPERTY(int count READ count NOTIFY countChanged)
+
+public:
+    enum Role { TimeRole = Qt::UserRole + 1, TextRole };
+
+    explicit LyricsModel(QObject *parent = nullptr);
+
+    int rowCount(const QModelIndex &parent = {}) const override { return parent.isValid() ? 0 : count(); }
+    int count() const { return int(m_lines.size()); }
+    QVariant data(const QModelIndex &index, int role) const override;
+    QHash<int, QByteArray> roleNames() const override;
+
+    void set(const Lyrics &lyrics);
+    void clear();
+    // The line sung at `seconds`: the last one that has started. -1 before the first and for lyrics
+    // that are not synced.
+    int lineAt(double seconds) const;
+
+signals:
+    void countChanged();
+
+private:
+    QList<LyricLine> m_lines;
+    bool m_synced = false;
+};
+
 // The songs of a SongModel whose title, artists or album hold every word of `text`, ignoring case
 // and accents: the search's first group on an album, a playlist or Favorites (docs/design.md,
 // "Search"). sourceRow() maps a match back, so it plays on into the whole list.

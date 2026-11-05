@@ -282,7 +282,7 @@ void Library::setLrclib(bool on)
     m_lrclib = on;
     emit lrclibChanged();
     // The song playing now gets its lyrics without waiting for the next one.
-    if (on && m_player && m_player->hasSong() && !m_player->lyricsLoading() && m_player->lyrics().isEmpty())
+    if (on && m_player && m_player->hasSong() && !m_player->lyricsLoading() && m_player->lyrics()->count() == 0)
         findLyricsOnline(m_player->song());
 }
 

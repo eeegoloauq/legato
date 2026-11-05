@@ -16,7 +16,7 @@ Rectangle {
     readonly property list<color> colors: Player.palette.length === 3 ? Player.palette : ["#5a52d6", "#ff7eb3", "#3fc1c9"]
     // What the right side shows: "lyrics", "queue" or "" (nothing), remembered across runs.
     property string side: "lyrics"
-    readonly property bool lyricsShown: side === "lyrics" && Player.lyrics.length > 0
+    readonly property bool lyricsShown: side === "lyrics" && Player.lyrics.count > 0
     readonly property bool sideShown: lyricsShown || side === "queue"
     readonly property color dim: Qt.rgba(1, 1, 1, 0.62)
     // How long the picture takes to turn to a new song: as long as the change when two songs mix.
@@ -420,7 +420,7 @@ Rectangle {
                 // right, and hides it again when it is showing.
                 IconButton {
                     Layout.leftMargin: 10
-                    visible: Player.lyrics.length > 0
+                    visible: Player.lyrics.count > 0
                     diameter: 34
                     glyph: "lyrics"
                     glyphSize: 20

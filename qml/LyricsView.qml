@@ -18,25 +18,9 @@ Item {
     // Where the sung line rests, as a share of the height from the top.
     property real anchor: 1 / 3
 
-    readonly property bool empty: Player.lyrics.length === 0
-    // The line being sung: the last one that has started. -1 before the first, or unsynced.
-    readonly property int current: {
-        const lines = Player.lyrics
-        if (!Player.lyricsSynced || lines.length === 0)
-            return -1
-        const t = Player.position + 0.15
-        let lo = 0, hi = lines.length - 1, found = -1
-        while (lo <= hi) {
-            const mid = (lo + hi) >> 1
-            if (lines[mid].time <= t) {
-                found = mid
-                lo = mid + 1
-            } else {
-                hi = mid - 1
-            }
-        }
-        return found
-    }
+    readonly property bool empty: Player.lyrics.count === 0
+    // The line being sung (worked out in C++, so it changes only with the line).
+    readonly property int current: Player.lyricsLine
     property double heldUntil: 0
 
     function follow(animated) {
@@ -61,6 +45,7 @@ Item {
     onCurrentChanged: follow(true)
     onVisibleChanged: if (visible) Qt.callLater(() => follow(false))
     onEmptyChanged: if (!empty) Qt.callLater(() => follow(false))
+    Component.onCompleted: if (!empty) Qt.callLater(() => follow(false))
 
     ListView {
         id: list
@@ -80,9 +65,10 @@ Item {
         delegate: T.Button {
             id: line
 
-            required property var modelData
+            required property real time
+            required property string lyric
             required property int index
-            readonly property bool synced: modelData.time >= 0
+            readonly property bool synced: time >= 0
 
             width: list.width
             // Templates controls have no implicit size of their own.
@@ -92,15 +78,15 @@ Item {
             hoverEnabled: true
             onClicked: {
                 root.heldUntil = 0
-                Player.seek(line.modelData.time)
+                Player.seek(line.time)
             }
 
             contentItem: Text {
-                text: line.modelData.text !== "" ? line.modelData.text : "• • •"
+                text: line.lyric !== "" ? line.lyric : "• • •"
                 color: root.textColor
                 font.pixelSize: line.synced ? root.lineSize : Math.round(root.lineSize * 0.85)
                 font.weight: line.synced ? Font.Bold : Font.Medium
-                font.letterSpacing: line.modelData.text !== "" ? -0.01 * root.lineSize : 4
+                font.letterSpacing: line.lyric !== "" ? -0.01 * root.lineSize : 4
                 wrapMode: Text.Wrap
                 opacity: !line.synced ? 0.85
                     : line.index === root.current ? 1
@@ -108,6 +94,7 @@ Item {
                     : line.index < root.current ? 0.38 : 0.28
 
                 Behavior on opacity {
+                    enabled: root.visible
                     NumberAnimation { duration: Theme.normalMs }
                 }
             }
