@@ -657,7 +657,9 @@ void Player::onProperty(int index, const mpv_event_property &property)
         deck.currentUrl = deck.nextUrl;
         deck.failed = false;
         m_position = 0;
-        m_duration = song().duration;
+        // mpv reports the new file's length before its path, or not at all when it is as long as
+        // the last one; the server's rounded length is only for when mpv has none yet.
+        m_duration = deck.duration > 0 ? deck.duration : song().duration;
         updateNext(true);
         announceSong();
     } else if (name == "idle-active" && flag() && hasSong() && !m_ended) {
