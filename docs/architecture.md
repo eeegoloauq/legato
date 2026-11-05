@@ -240,7 +240,10 @@ every 10 s) asks again and takes a newer queue saved elsewhere meanwhile.
 the cache directory, one folder per server and user. File names are hashes of the cover id, so a
 server's ids never form a path. `CoverProvider` serves `image://cover/<id>` to QML: it decodes and
 center-crops on a worker thread at exactly the size the image is shown, so the GPU never scales
-covers and scrolling never decodes on the GUI thread.
+covers and scrolling never decodes on the GUI thread. A download that fails on the way (no answer, a
+timeout, a 5xx) is asked for again after 2, 6 and 20 s, then every minute while a cover on screen
+still waits for it; a 4xx, a cover scrolled past and one from the server before a switch are not.
+Without this a cover missed during a short drop stayed blank as long as its row was made.
 
 Views build only what shows. Grids and carousels are item views, and Home is a ListView of rows (as
 lumeo's shelves), so a row is built when it comes near the screen and the ones below are built after

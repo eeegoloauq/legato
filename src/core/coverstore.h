@@ -42,7 +42,13 @@ public:
     // (MPRIS); the name has no extension, readers go by content.
     QString cachedFile(const QString &id, int size) const;
     // Thread-safe. Reads the cover from disk, or downloads and stores it. `cancelled` may be null.
+    // A download that fails on the way (no answer, a 5xx) is asked for again after each of
+    // retryDelaysMs, then every againEveryMs while a cover on screen still waits for it.
     void load(const QString &id, int size, Cancelled cancelled, Done done);
+
+    // Tests shorten both.
+    static QList<int> retryDelaysMs;
+    static int againEveryMs;
 
 private:
     struct Waiter {
@@ -52,11 +58,16 @@ private:
     struct Pending {
         QPointer<QNetworkReply> reply;
         QList<Waiter> waiters;
+        // Retries made so far.
+        int attempt = 0;
     };
 
     QString pathFor(const QString &id, int size) const;
-    void download(const QString &id, int size, Waiter waiter); // GUI thread only
-    void dropCancelled(const QString &key);                    // GUI thread only
+    // GUI thread only, all four.
+    void download(const QString &id, int size, Waiter waiter);
+    void request(const QString &id, int size);
+    bool retryLater(const QString &id, int size);
+    void dropCancelled(const QString &key);
 
     SubsonicClient *m_client;
     mutable QMutex m_dirLock;
