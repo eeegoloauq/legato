@@ -58,6 +58,12 @@ pixel ratio and the provider scales while decoding. The 512 MB disk caches bound
   a `live` flag; a stopped animation costs nothing, a paused one still ticks.
 - A delegate in a view's cache buffer counts as visible. Make the animated part (the level meter)
   only in the row that shows it.
+- A change to a hidden item (its opacity, its position) still asks for a frame. A view that does not
+  show is not made (the side panel's queue and lyrics), and a `Behavior` on a hidden item is off.
+- What follows the playback position moves by whole device pixels (`BarSlider`): a long song moves
+  the position line less than a pixel between two updates.
+- A pause between two moves is a `Timer`, not a `PauseAnimation`, which keeps the animation driver
+  running (`Marquee`).
 - Any redraw under the player bar or the scrolled top bar captures and blurs the page again, so one
   stray animation costs a full-window blur every frame.
 - `layer.enabled` is an offscreen texture and a render pass for each item and breaks batching. It does
@@ -65,6 +71,7 @@ pixel ratio and the provider scales while decoding. The 512 MB disk caches bound
   `RoundedImage` does, or when the icon is loaded.
 - Idle means no frames. Paused, or playing on a page without a playing row, `--frame-meter` and
   `QT_LOGGING_RULES=qt.scenegraph.time.renderloop=true` show no steady redraw.
+  `QT_LOGGING_RULES=qt.quick.dirty=true` names the items that changed before each frame.
 
 ## Measuring
 
