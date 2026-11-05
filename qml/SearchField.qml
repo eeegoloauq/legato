@@ -109,8 +109,11 @@ Item {
             Theme.savedAppearance = (Theme.savedAppearance + 1) % 3
             return
         }
+        // Taken before leave(): emptying the field empties the page's matches and the server's.
         const songs = page ? page.localSongs : null
         const from = page ? page.localFrom : ""
+        if (row.kind === "song")
+            results.playSong(row.id)
         leave()
         switch (row.kind) {
         case "local":
@@ -125,9 +128,6 @@ Item {
             break
         case "playlist":
             Navigation.playlist(row.id)
-            break
-        case "song":
-            results.playSong(row.id)
             break
         case "action":
             if (row.id === "shuffle")
