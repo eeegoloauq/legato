@@ -250,6 +250,7 @@ Item {
 
             ToolTip.text: qsTr("Played %n time(s)", "", songRow.playCount)
             ToolTip.visible: playsHover.hovered
+            // On every row: no tooltip flashing past as the pointer crosses the list.
             ToolTip.delay: 600
         }
 

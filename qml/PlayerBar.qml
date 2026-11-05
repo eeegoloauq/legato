@@ -330,7 +330,6 @@ Item {
 
             ToolTip.text: qsTr("Full-screen player")
             ToolTip.visible: artHover.hovered
-            ToolTip.delay: 600
         }
 
         // The quality badge and "…", at the right end over the line.

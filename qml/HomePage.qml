@@ -60,7 +60,6 @@ ContentPage {
                     text: qsTr("Shuffle")
                     ToolTip.text: qsTr("Shuffle your whole library (Ctrl+Shift+S)")
                     ToolTip.visible: hovered
-                    ToolTip.delay: 600
                     onClicked: Library.shuffleLibrary()
                 }
             }

@@ -33,7 +33,6 @@ ToolButton {
     ToolTip.visible: hovered && tip !== "" && !tipDismissed
     onPressed: tipDismissed = true
     onHoveredChanged: if (!hovered) tipDismissed = false
-    ToolTip.delay: 600
 
     background: Rectangle {
         radius: height / 2
