@@ -32,10 +32,7 @@ are in [decision 0002](decisions/0002-performance.md). In order, each measured b
 1. Subsonic replies parsed off the GUI thread.
 2. Units and QML tests under AddressSanitizer, UndefinedBehaviorSanitizer and LeakSanitizer in CI,
    with a suppressions file for Qt's and Mesa's own allocations.
-3. Playing a song whose title fits, on the album grid, the fake server under Xvfb still drew about
-   24 frames a second on 2026-11-06 (paused and idle draw none). Find what changes with
-   `qt.quick.dirty`.
-4. By ear on the desktop: gapless and both crossfade modes with the bounded mpv buffers
+3. By ear on the desktop: gapless and both crossfade modes with the bounded mpv buffers
    (`cache-secs=30`), and no more clipping from the bass swap's shelf in the log.
 
 ## Next
