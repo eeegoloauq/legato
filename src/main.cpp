@@ -1,5 +1,6 @@
 #include "coverprovider.h"
 #include "library.h"
+#include "logfile.h"
 #include "player.h"
 #include "session.h"
 #include "subsonic.h"
@@ -10,6 +11,7 @@
 #include <QQuickItem>
 #include <QQuickStyle>
 #include <QQuickWindow>
+#include <QSysInfo>
 #include <QThreadPool>
 #include <QTimer>
 #include <QtQml/QQmlExtensionPlugin>
@@ -74,6 +76,10 @@ int main(int argc, char *argv[])
     QGuiApplication::setApplicationVersion(QStringLiteral(LEGATO_VERSION));
     // The Wayland app id and the name of the .desktop file.
     QGuiApplication::setDesktopFileName(u"io.github.eeegoloauq.legato"_s);
+    legato::LogFile::install();
+    // The first line of a report.
+    qInfo("Legato %s, Qt %s, %s, %s", LEGATO_VERSION, qVersion(), qUtf8Printable(QSysInfo::prettyProductName()),
+          qUtf8Printable(QGuiApplication::platformName()));
     // The QML imports QtQuick.Controls.Basic by name. Controls that Qt creates itself, such as the
     // attached ToolTip, go through the generic QtQuick.Controls import, which would otherwise pick
     // the platform's style.

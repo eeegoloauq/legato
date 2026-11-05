@@ -172,6 +172,7 @@ qt_add_qml_module(legato
     src/app/coverprovider.h src/app/coverprovider.cpp
     src/app/framemeter.h src/app/framemeter.cpp
     src/app/library.h src/app/library.cpp
+    src/app/logfile.h src/app/logfile.cpp
     src/app/lyricsfinder.h src/app/lyricsfinder.cpp
     src/app/mixanalyzer.h src/app/mixanalyzer.cpp
     src/app/models.h src/app/models.cpp

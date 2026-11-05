@@ -28,7 +28,7 @@ Qt Quick and C++ with libmpv. [Decision 0001](decisions/0001-qt-quick.md) record
 src/core     Qt-only logic without QML: Subsonic client, server list, cover cache, palette, play queue
 src/app      QML-facing classes: Session (servers, sign-in, keychain), Library, Player (libmpv), the
              list models, the pages' data objects, cover colors, cover image provider, frame meter
-src/main.cpp the executable: command line, engine, development options
+src/main.cpp the executable: log file, command line, engine, development options
 qml          the interface, one QML module (Legato)
 shaders      fragment shaders: rounded covers, drifting blobs, edge fade, shimmer, tint
 icons        Material Symbols Rounded, only those in use
@@ -273,6 +273,16 @@ commercial key and Genius has no lyrics API.
   failed request is not kept: LRCLIB is often busy (503), and the song is asked again next time.
 - Synced lyrics are preferred over plain ones. Rules in `src/core/lrclib.*` (tested), network and
   cache in `src/app/lyricsfinder.*`.
+
+## Log
+
+Every message (Qt's, QML's, mpv's warnings, legato's own categories such as `legato.automix`) goes to
+where it went before, the terminal or the journal, and also to `legato.log` in the state folder
+(`~/.local/state/legato`, `%LOCALAPPDATA%\legato\State` on Windows), first line the version, Qt and
+the system. Windows has no terminal for a GUI program, so without the file its messages were lost.
+Each start moves the last run's log to `legato.old.log`, since a report is usually about the run that
+just ended; a run writes at most 4 MiB, so two files bound the size. Settings > About shows the
+folder and opens it (`src/app/logfile.*`). More detail is `QT_LOGGING_RULES`, not a setting.
 
 ## Packaging and releases
 

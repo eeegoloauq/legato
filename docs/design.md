@@ -236,6 +236,7 @@ the right.
   AutoMix), with Crossfade length for Fixed and Keep albums gapless (on, so an album plays as it
   was made); Find missing lyrics on LRCLIB (off).
 - Servers: status dot, Switch, Rename, Sign Out, Remove, Add Server.
+- About: the version, where the logs are, Show Logs.
 
 ## Keyboard
 

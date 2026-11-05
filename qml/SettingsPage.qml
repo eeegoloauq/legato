@@ -434,6 +434,22 @@ ContentPage {
                     }
                 }
             }
+
+            // What a bug report needs: the version and the log.
+            Section {
+                title: qsTr("About")
+
+                SettingRow {
+                    label: qsTr("Legato %1").arg(Qt.application.version)
+                    detail: Log.folder !== "" ? qsTr("Logs are kept in %1.").arg(Log.folder) : ""
+
+                    PushButton {
+                        visible: Log.folder !== ""
+                        text: qsTr("Show Logs")
+                        onClicked: Log.showFolder()
+                    }
+                }
+            }
         }
 
         T.ScrollBar.vertical: Scroller {}
