@@ -68,7 +68,7 @@ pixel ratio and the provider scales while decoding. The 512 MB disk caches bound
   stray animation costs a full-window blur every frame.
 - `layer.enabled` is an offscreen texture and a render pass for each item and breaks batching. It does
   not go on something repeated in a list, such as an icon: tint in a shader that reads the image, as
-  `RoundedImage` does, or when the icon is loaded.
+  `RoundedImage` does, or when the icon is loaded, as `Glyph` does.
 - Idle means no frames. Paused, or playing on a page without a playing row, `--frame-meter` and
   `QT_LOGGING_RULES=qt.scenegraph.time.renderloop=true` show no steady redraw.
   `QT_LOGGING_RULES=qt.quick.dirty=true` names the items that changed before each frame.

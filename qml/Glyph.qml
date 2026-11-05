@@ -1,26 +1,19 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Effects
+import QtQuick.Controls.impl
 import Legato
 
-// An icon of icons/ outside a button, in [color] (as lumeo's Glyph): the SVGs are drawn black,
-// lifted to white and tinted.
-Image {
-    id: glyph
-
+// An icon of icons/ outside a button, in [color]. The SVGs are drawn black and tinted once, when the
+// image loads (as the Basic style tints its indicators), so an icon is a plain image that batches
+// with the others: no layer and no effect each frame (docs/decisions/0002-performance.md).
+ColorImage {
     required property string name
     property real size: 18
-    property color color: Theme.text
 
+    color: Theme.text
     source: Theme.icon(name)
     sourceSize: Qt.size(size, size)
     width: size
     height: size
-    layer.enabled: true
-    layer.effect: MultiEffect {
-        brightness: 1
-        colorization: 1
-        colorizationColor: glyph.color
-    }
 }
