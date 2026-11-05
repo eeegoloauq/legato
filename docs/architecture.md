@@ -172,7 +172,8 @@ Modes (Settings > Playback > Crossfade: Off, Automatic, Fixed):
    arrives (where the old song begins to fade), then swaps in 0.5 s: the old song's low end is cut
    and the new one's comes back, so two kicks and two basslines never stack. Each deck has a low
    shelf at 200 Hz in its filter chain from the start (`af=@swap:lavfi=[lowshelf@swap=...]`, 0 dB:
-   adding a filter later would restart the audio chain, a gap), and `af-command swap g <dB>
+   adding a filter later would restart the audio chain, a gap), in floating point (`precision=f64`:
+   newer FFmpeg would run it on integer samples, which a loud master clips even at 0 dB), and `af-command swap g <dB>
    lowshelf@swap` moves its gain to -24 dB and back in the fade's 20 ms steps (the target must name
    the filter: the default "all" fails). Fixed crossfade stays a plain fade.
 

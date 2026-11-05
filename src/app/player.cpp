@@ -79,9 +79,12 @@ bool Player::createDeck(Deck &deck, int index)
     // The name the sound settings show for legato's stream.
     option("audio-client-name", "Legato");
     // The bass swap's low shelf (crossfade::bassCuts), at 0 dB but while a change swaps the bass. A
-    // filter added only for the change would restart the audio chain, a gap in the music.
+    // filter added only for the change would restart the audio chain, a gap in the music. In floating
+    // point: newer FFmpeg runs it on the decoder's integer samples, where a loud master clips (and
+    // logs each clip) even at 0 dB, and a cut that raises a peak past full scale would clip for real.
+    // mpv's volume, after the filter, still brings a fading song back under full scale.
     const QByteArray shelf = "@swap:lavfi=[lowshelf@swap=f=" + QByteArray::number(crossfade::BassHz)
-        + ":t=q:w=0.707:g=0]";
+        + ":t=q:w=0.707:g=0:precision=f64]";
     option("af", shelf.constData());
     // Gapless playback over the network needs the next song fetched before the current one ends.
     option("gapless-audio", "weak");
