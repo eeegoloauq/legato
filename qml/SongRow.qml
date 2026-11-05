@@ -125,11 +125,20 @@ Item {
                 font.features: { "tnum": 1 }
             }
 
-            LevelMeter {
+            Loader {
                 anchors.right: parent.right
                 anchors.rightMargin: 4
                 anchors.verticalCenter: parent.verticalCenter
-                visible: songRow.playing && !hover.hovered
+                active: songRow.playing
+                visible: !hover.hovered
+
+                sourceComponent: LevelMeter {
+                    // A row in the view's cache buffer is visible to Qt: the meter rests while the
+                    // row is scrolled out of sight. Only the playing row follows the scrolling.
+                    running: Player.playing && visible && (!songRow.ListView.view
+                        || (songRow.y + songRow.height > songRow.ListView.view.contentY
+                            && songRow.y < songRow.ListView.view.contentY + songRow.ListView.view.height))
+                }
             }
 
             ToolButton {

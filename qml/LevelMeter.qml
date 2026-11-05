@@ -4,12 +4,13 @@ import QtQuick
 import Legato
 
 // The playing row's small level meter (docs/design.md, "Song lists"): three bars that bounce while
-// the song plays and rest while it is paused.
+// the song plays and rest while it is paused. Nothing animates unseen (docs/decisions/0002-performance.md):
+// a list makes the meter only in the playing row, and `running` adds what Qt does not count as unseen.
 Row {
     id: meter
 
     property color color: Theme.tint
-    property bool running: Player.playing
+    property bool running: Player.playing && visible
 
     spacing: 2
     height: 12

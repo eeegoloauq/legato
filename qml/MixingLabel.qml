@@ -18,7 +18,8 @@ Text {
     font.weight: Font.DemiBold
     font.letterSpacing: 0.3
 
-    layer.enabled: Theme.animationsOn
+    // Hidden, it keeps no texture.
+    layer.enabled: Theme.animationsOn && visible
     layer.effect: ShaderEffect {
         readonly property real phase: root.phase
         readonly property real base: 0.45

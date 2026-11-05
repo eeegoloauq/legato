@@ -3,7 +3,8 @@ import QtQuick.Effects
 import Legato
 
 // Generated cover: soft color blobs with the name set large in white (docs/design.md, "Generated
-// covers"). `live` covers drift while `active` (on screen); small covers stay still.
+// covers"). `live` covers drift while `active` (on screen) and visible; small covers stay still. A stopped
+// drift starts again from the beginning, unseen.
 Item {
     id: root
 
@@ -44,8 +45,8 @@ Item {
             to: 2 * Math.PI
             duration: Theme.driftMs
             loops: Animation.Infinite
-            running: root.live
-            paused: !root.active || !Theme.animationsOn
+            // Stopped rather than paused: a paused animation still ticks.
+            running: root.live && root.active && root.visible && Theme.animationsOn
         }
     }
 

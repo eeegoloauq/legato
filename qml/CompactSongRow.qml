@@ -67,10 +67,13 @@ Item {
         coverArt: songRow.coverArt
     }
 
-    LevelMeter {
+    Loader {
         anchors.centerIn: cover
-        visible: songRow.playing
-        color: "white"
+        active: songRow.playing
+
+        sourceComponent: LevelMeter {
+            color: "white"
+        }
     }
 
     Column {
