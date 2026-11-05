@@ -16,6 +16,7 @@
 #include <QTimer>
 
 #include <functional>
+#include <initializer_list>
 
 struct mpv_handle;
 
@@ -50,6 +51,8 @@ private:
     };
 
     bool ensureMpv();
+    // Async, in the order given.
+    void command(std::initializer_list<const char *> args);
     void startNext();
     void drainEvents();
     // The decode ended; `ok` when it reached the end of its part.

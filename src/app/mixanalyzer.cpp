@@ -13,7 +13,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <initializer_list>
 #include <utility>
+#include <vector>
 
 #include <mpv/client.h>
 
@@ -44,8 +46,7 @@ MixAnalyzer::MixAnalyzer(QObject *parent)
             qWarning("automix: %s took too long", qPrintable(m_current.songId));
             std::exchange(m_current.done, {})({});
         }
-        const char *argv[] = {"stop", nullptr};
-        mpv_command_async(m_mpv, 0, argv);
+        command({"stop"});
     });
 }
 
@@ -55,6 +56,13 @@ MixAnalyzer::~MixAnalyzer()
         mpv_set_wakeup_callback(m_mpv, nullptr, nullptr);
         mpv_terminate_destroy(m_mpv);
     }
+}
+
+void MixAnalyzer::command(std::initializer_list<const char *> args)
+{
+    std::vector<const char *> argv(args);
+    argv.push_back(nullptr);
+    mpv_command_async(m_mpv, 0, argv.data());
 }
 
 bool MixAnalyzer::ensureMpv()
@@ -125,14 +133,15 @@ void MixAnalyzer::startNext()
         m_busy = true;
         const QString file = m_tmp.filePath(u"part.pcm"_s);
         QFile::remove(file);
-        mpv_set_property_string(m_mpv, "ao-pcm-file", qPrintable(file));
+        const QByteArray path = file.toUtf8();
         const bool tail = m_current.part == Part::Tail;
         const QByteArray from = tail ? QByteArray::number(-automix::TailSeconds) : "none"_ba;
         const QByteArray to = tail ? "none"_ba : QByteArray::number(automix::HeadSeconds);
-        mpv_set_property_string(m_mpv, "start", from.constData());
-        mpv_set_property_string(m_mpv, "end", to.constData());
-        const char *argv[] = {"loadfile", m_current.url.constData(), "replace", nullptr};
-        mpv_command_async(m_mpv, 0, argv);
+        // Async, as a synchronous set waits for mpv's core; mpv runs them in the order given.
+        command({"set", "ao-pcm-file", path.constData()});
+        command({"set", "start", from.constData()});
+        command({"set", "end", to.constData()});
+        command({"loadfile", m_current.url.constData(), "replace"});
         m_timeout.start();
     }
 }

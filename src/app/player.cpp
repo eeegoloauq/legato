@@ -142,7 +142,8 @@ void Player::command(Deck &deck, std::initializer_list<const char *> args)
         return;
     std::vector<const char *> argv(args);
     argv.push_back(nullptr);
-    // Async, so a slow server never blocks the interface. mpv runs them in the order given.
+    // Async, so a slow server never blocks the interface: a synchronous call, mpv_set_property_string
+    // included, waits for mpv's core. mpv runs them in the order given.
     mpv_command_async(deck.mpv, 0, argv.data());
 }
 
@@ -283,7 +284,7 @@ void Player::updateNext(bool force)
     const int following = m_queue.following(m_repeat == 1);
     // One song on repeat all follows itself; mpv loops the file instead, as for repeat one.
     const bool loopFile = m_repeat == 2 || (m_repeat == 1 && following == m_queue.position());
-    mpv_set_property_string(deck.mpv, "loop-file", loopFile ? "inf" : "no");
+    command(deck, {"set", "loop-file", loopFile ? "inf" : "no"});
     const QByteArray url = following >= 0 && !loopFile ? m_queue.at(following).url.toEncoded() : QByteArray();
     const bool fade = !url.isEmpty() && m_crossfade > 0
         && !(m_keepAlbumsGapless && crossfade::albumContinues(song(), m_queue.at(following).song));
@@ -769,10 +770,8 @@ void Player::loadPalette()
 
 void Player::setSilentFallback(bool on)
 {
-    for (Deck &deck : m_decks) {
-        if (deck.mpv)
-            mpv_set_property_string(deck.mpv, "audio-fallback-to-null", on ? "yes" : "no");
-    }
+    for (Deck &deck : m_decks)
+        command(deck, {"set", "audio-fallback-to-null", on ? "yes" : "no"});
 }
 
 void Player::setPaused(bool paused)

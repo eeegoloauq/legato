@@ -29,17 +29,16 @@ From a read of the code on 2026-11-05. Measured on the desktop: 0.1.1 had 555 Mi
 into playback, at least 138 MiB of it memory glibc had freed and kept. Directions and how to measure
 are in [decision 0002](decisions/0002-performance.md). In order, each measured before and after:
 
-1. `mpv_set_property_string` on the GUI thread (`player.cpp`, `mixanalyzer.cpp`) made async.
-2. `Glyph` puts a layer and a `MultiEffect` on every icon.
-3. Covers on the four kept pages and Home's `cacheBuffer: 3000`: one decoded-cover cache with a size
+1. `Glyph` puts a layer and a `MultiEffect` on every icon.
+2. Covers on the four kept pages and Home's `cacheBuffer: 3000`: one decoded-cover cache with a size
    in bytes in `CoverProvider`, covers released on parked pages. Measured with `keptPages: 1` first.
-4. Subsonic replies parsed off the GUI thread.
-5. Units and QML tests under AddressSanitizer, UndefinedBehaviorSanitizer and LeakSanitizer in CI,
+3. Subsonic replies parsed off the GUI thread.
+4. Units and QML tests under AddressSanitizer, UndefinedBehaviorSanitizer and LeakSanitizer in CI,
    with a suppressions file for Qt's and Mesa's own allocations.
-6. Playing a song whose title fits, on the album grid, the fake server under Xvfb still drew about
+5. Playing a song whose title fits, on the album grid, the fake server under Xvfb still drew about
    24 frames a second on 2026-11-06 (paused and idle draw none). Find what changes with
    `qt.quick.dirty`.
-7. By ear on the desktop: gapless and both crossfade modes with the bounded mpv buffers
+6. By ear on the desktop: gapless and both crossfade modes with the bounded mpv buffers
    (`cache-secs=30`), and no more clipping from the bass swap's shelf in the log.
 
 ## Next
