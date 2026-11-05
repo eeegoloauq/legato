@@ -59,7 +59,8 @@ volume buttons.
   The position is a thin line along the bottom of the block. Hovering the line thickens it and shows
   elapsed and remaining time in place of the artist line.
   - Each artist and the album are links. The song title is not.
-  - A line that does not fit rests, glides left until its end shows, rests and glides back.
+  - A line that does not fit rests, glides left until its end shows, rests and glides back. While
+    the song is paused it glides back to its start and stays.
 - During a crossfade of 2 s or more, "Mixing" takes the quality badge's place, with a highlight
   sweeping across it, and the cover dissolves over the whole change.
 - Right: Up Next, then the speaker. Resting on the speaker grows it into a pill with a volume

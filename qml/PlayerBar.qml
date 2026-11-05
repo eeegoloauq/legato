@@ -481,6 +481,7 @@ Item {
                 width: parent.width
                 y: 0
                 text: Player.title
+                running: Player.playing
                 color: Theme.text
                 font.pixelSize: Theme.fsSmall
                 font.weight: Font.DemiBold

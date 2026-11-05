@@ -190,6 +190,7 @@ Rectangle {
                     Marquee {
                         Layout.fillWidth: true
                         text: Player.hasSong ? Player.title : qsTr("Not playing")
+                        running: Player.playing
                         color: "white"
                         font.pixelSize: 22
                         font.weight: Font.Bold

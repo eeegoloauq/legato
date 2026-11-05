@@ -11,7 +11,10 @@ import Legato
 // - it moves at a steady reading speed (30 px/s) with soft starts and stops, so a long title takes
 //   longer instead of racing;
 // - the edge it scrolls past fades out instead of cutting letters in half;
-// - text that fits never moves, and with animations off the line is elided instead.
+// - text that fits never moves, and with animations off the line is elided instead;
+// - it rests while `running` is false (the song is paused), gliding back to its start first: idle
+//   means no frames (docs/decisions/0002-performance.md). The rests are a timer, not an animation,
+//   so they draw nothing.
 Item {
     id: root
 
@@ -26,9 +29,10 @@ Item {
     // Pixels per second.
     property real speed: 30
     property int rest: 2500
+    property bool running: true
 
     readonly property real overflow: Math.max(0, Math.ceil(label.implicitWidth - width))
-    readonly property bool scrolls: overflow > 0 && Theme.animationsOn && visible
+    readonly property bool scrolls: overflow > 0 && Theme.animationsOn && visible && running
     readonly property int travel: Math.max(500, overflow / speed * 1000)
 
     implicitWidth: label.implicitWidth
@@ -36,15 +40,28 @@ Item {
     clip: true
 
     function reset() {
-        run.stop()
+        pause.stop()
+        glide.stop()
+        home.stop()
         label.x = 0
-        if (scrolls)
-            run.start()
+        if (scrolls) {
+            pause.interval = rest
+            pause.start()
+        }
     }
 
     onTextChanged: reset()
     onOverflowChanged: reset()
-    onScrollsChanged: reset()
+    // Stopped mid-way while still shown (paused): back to the start, then still.
+    onScrollsChanged: {
+        if (scrolls || label.x === 0 || !visible || !Theme.animationsOn) {
+            reset()
+        } else {
+            pause.stop()
+            glide.stop()
+            home.start()
+        }
+    }
 
     // Always its full width, so it never has to be laid out again when it starts or stops
     // scrolling (toggling elide and width with the overflow left it drawn at a stale width); it
@@ -62,32 +79,42 @@ Item {
         cursorShape: label.hoveredLink !== "" ? Qt.PointingHandCursor : Qt.ArrowCursor
     }
 
-    SequentialAnimation {
-        id: run
+    // Rests at either end; the next glide goes the other way.
+    Timer {
+        id: pause
 
-        loops: Animation.Infinite
-
-        PauseAnimation { duration: root.rest }
-        NumberAnimation {
-            target: label
-            property: "x"
-            from: 0
-            to: -root.overflow
-            duration: root.travel
-            easing.type: Easing.InOutSine
-        }
-        PauseAnimation { duration: root.rest - 500 }
-        NumberAnimation {
-            target: label
-            property: "x"
-            from: -root.overflow
-            to: 0
-            duration: root.travel
-            easing.type: Easing.InOutSine
+        onTriggered: {
+            glide.from = label.x
+            glide.to = label.x < 0 ? 0 : -root.overflow
+            glide.start()
         }
     }
 
-    layer.enabled: root.scrolls
+    NumberAnimation {
+        id: glide
+
+        target: label
+        property: "x"
+        duration: root.travel
+        easing.type: Easing.InOutSine
+        onFinished: {
+            // The first rest, before the move out, is the longest.
+            pause.interval = label.x < 0 ? root.rest - 500 : root.rest
+            pause.start()
+        }
+    }
+
+    NumberAnimation {
+        id: home
+
+        target: label
+        property: "x"
+        to: 0
+        duration: Theme.normalMs * 2
+        easing.type: Easing.InOutSine
+    }
+
+    layer.enabled: root.scrolls || home.running
     layer.effect: ShaderEffect {
         // 0 to 1 over the first and last few pixels of travel, so the fade comes in with the move.
         readonly property real fadeLeft: Math.min(1, -label.x / 8)

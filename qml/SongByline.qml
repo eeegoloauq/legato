@@ -25,6 +25,7 @@ Marquee {
     }
 
     text: links
+    running: Player.playing
     textFormat: Text.RichText
     color: linkColor
     onLinkActivated: link => {
