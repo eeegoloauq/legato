@@ -176,6 +176,7 @@ qt_add_qml_module(legato
     src/app/lyricsfinder.h src/app/lyricsfinder.cpp
     src/app/mixanalyzer.h src/app/mixanalyzer.cpp
     src/app/models.h src/app/models.cpp
+    src/app/mpvoptions.h src/app/mpvoptions.cpp
     src/app/pages.h src/app/pages.cpp
     src/app/player.h src/app/player.cpp
     src/app/queuesync.h src/app/queuesync.cpp

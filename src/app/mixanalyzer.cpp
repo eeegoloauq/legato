@@ -1,6 +1,7 @@
 #include "mixanalyzer.h"
 
 #include "diskcache.h"
+#include "mpvoptions.h"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -66,14 +67,9 @@ bool MixAnalyzer::ensureMpv()
     if (!m_mpv)
         return false;
     const auto option = [this](const char *name, const char *value) { mpv_set_option_string(m_mpv, name, value); };
-    option("vid", "no");
-    option("audio-display", "no");
-    option("terminal", "no");
-    option("config", "no");
-    option("load-scripts", "no");
-    option("ytdl", "no");
-    option("input-default-bindings", "no");
-    option("idle", "yes");
+    mpvoptions::setCommon(m_mpv);
+    // Reads the part it measures and nothing more: a cache would read the rest of the file ahead.
+    option("cache", "no");
     // Written to a file as fast as it decodes, in a format read back without a header.
     option("ao", "pcm");
     option("ao-pcm-waveheader", "no");
@@ -83,7 +79,6 @@ bool MixAnalyzer::ensureMpv()
     // Closes the file at the end of each part, before mpv reports the end.
     option("gapless-audio", "no");
     option("network-timeout", "15");
-    option("user-agent", qPrintable(u"Legato/%1"_s.arg(QCoreApplication::applicationVersion())));
     mpv_request_log_messages(m_mpv, "error");
     if (mpv_initialize(m_mpv) < 0) {
         mpv_terminate_destroy(m_mpv);

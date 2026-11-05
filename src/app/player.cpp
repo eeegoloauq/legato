@@ -5,9 +5,9 @@
 #include "coverstore.h"
 #include "mixanalyzer.h"
 #include "models.h"
+#include "mpvoptions.h"
 #include "palette.h"
 
-#include <QCoreApplication>
 #include <QLoggingCategory>
 #include <QPointer>
 
@@ -75,15 +75,7 @@ bool Player::createDeck(Deck &deck, int index)
         return false;
     mpv_handle *mpv = deck.mpv;
     const auto option = [mpv](const char *name, const char *value) { mpv_set_option_string(mpv, name, value); };
-    // Audio only, nothing from the user's mpv setup, no scripts and no youtube-dl hook.
-    option("vid", "no");
-    option("audio-display", "no");
-    option("terminal", "no");
-    option("config", "no");
-    option("load-scripts", "no");
-    option("ytdl", "no");
-    option("input-default-bindings", "no");
-    option("idle", "yes");
+    mpvoptions::setCommon(mpv);
     // The name the sound settings show for legato's stream.
     option("audio-client-name", "Legato");
     // The bass swap's low shelf (crossfade::bassCuts), at 0 dB but while a change swaps the bass. A
@@ -95,7 +87,13 @@ bool Player::createDeck(Deck &deck, int index)
     option("gapless-audio", "weak");
     option("prefetch-playlist", "yes");
     option("network-timeout", "30");
-    option("user-agent", qPrintable(u"Legato/%1"_s.arg(QCoreApplication::applicationVersion())));
+    // mpv's buffer is sized for video from the internet: up to 150 MiB read ahead and 50 MiB kept
+    // behind, which for a song is the whole file, then the next one once prefetch starts. Half a
+    // minute ahead, so a gapless next song is still fetched half a minute before it plays; a ceiling
+    // for hi-res files; a little behind for a short seek back.
+    option("cache-secs", "30");
+    option("demuxer-max-bytes", "32MiB");
+    option("demuxer-max-back-bytes", "2MiB");
     mpv_request_log_messages(mpv, "warn");
 
     if (mpv_initialize(mpv) < 0) {
