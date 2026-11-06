@@ -23,15 +23,6 @@ apply, and measuring loudness would mean decoding every song in full), song chan
 
 Everything in scope above, on Linux (tarball, RPM, Arch package) and Windows (installer).
 
-## Performance
-
-From a read of the code on 2026-11-05. Measured on the desktop: 0.1.1 had 555 MiB PSS a few minutes
-into playback, at least 138 MiB of it memory glibc had freed and kept. Directions and how to measure
-are in [decision 0002](decisions/0002-performance.md).
-
-- By ear on the desktop: gapless and both crossfade modes with the bounded mpv buffers
-  (`cache-secs=30`), and no more clipping from the bass swap's shelf in the log.
-
 ## Next
 
 - A web demo on GitHub Pages: the same QML built with Qt for WebAssembly, single-threaded (Pages
