@@ -66,6 +66,18 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="0.1.2" date="2026-11-06">
+      <description>
+        <ul>
+          <li>Lower memory and CPU use during playback</li>
+          <li>Disk caches stay under 512 MB</li>
+          <li>A log file, opened from Settings</li>
+          <li>Fixes: no more clipping in Automatic crossfade, a song chosen in the search plays,
+            the song length stays right after a gapless change, covers that failed to load come
+            again, tooltips show at once</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.1" date="2026-11-03">
       <description>
         <ul>
