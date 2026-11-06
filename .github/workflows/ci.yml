@@ -39,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # libmpv and QtKeychain are the system's (docs/architecture.md); D-Bus runs the MPRIS test,
-      # Xvfb and Mesa the app test.
+      # Xvfb, Mesa and the xcb libraries of Qt's xcb plugin the app test.
       - name: build dependencies
         timeout-minutes: 10
         run: |
@@ -48,7 +48,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build pkg-config ccache mold \
             libgl-dev libegl-dev libxkbcommon-dev libxkbcommon-x11-0 libxcb-cursor0 \
-            libmpv-dev qtkeychain-qt6-dev dbus xvfb libgl1-mesa-dri
+            libmpv-dev qtkeychain-qt6-dev dbus xvfb libgl1-mesa-dri \
+            libx11-xcb1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
+            libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xkb1
       # Not when release.yml calls this: a release restores no cache (see there).
       - uses: actions/cache@v6
         if: github.workflow == 'ci'
@@ -92,7 +94,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build pkg-config ccache mold \
             libgl-dev libegl-dev libxkbcommon-dev libxkbcommon-x11-0 libxcb-cursor0 \
-            libmpv-dev qtkeychain-qt6-dev dbus xvfb libgl1-mesa-dri
+            libmpv-dev qtkeychain-qt6-dev dbus xvfb libgl1-mesa-dri \
+            libx11-xcb1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
+            libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xkb1
       - uses: actions/cache@v6
         if: github.workflow == 'ci'
         with:
