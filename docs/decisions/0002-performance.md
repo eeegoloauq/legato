@@ -53,7 +53,8 @@ pixel ratio and the provider scales while decoding. The 512 MB disk caches bound
   compares numbers; the current lyric line is worked out in C++ and changes only with the line.
 - No synchronous mpv call on the GUI thread: `mpv_set_property_string` waits for mpv's core. Use
   the async set or a `set` command.
-- Large server replies are parsed off the GUI thread.
+- Server replies that fill a page are parsed off the GUI thread (`SubsonicClient::fetch`); a new
+  call with a list in its answer goes through it.
 
 ## Rendering
 

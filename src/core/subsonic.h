@@ -10,6 +10,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QThreadPool>
 #include <QUrl>
 #include <QUrlQuery>
 
@@ -334,7 +335,8 @@ private:
     void send(const QString &endpoint, const QUrlQuery &params, std::function<void(QString error)> done);
     void callJson(const QString &endpoint, const QUrlQuery &params,
                   std::function<void(ApiResult)> done);
-    // callJson with the body parsed by `parse`; an error leaves the value default-constructed.
+    // A GET whose body `parse` reads on m_parser's thread, done on this one; an error leaves the value
+    // default-constructed.
     template <typename T>
     void fetch(const QString &endpoint, const QUrlQuery &params, T (*parse)(const QJsonObject &),
                Done<T> done);
@@ -342,6 +344,8 @@ private:
     Credentials m_credentials;
     QNetworkAccessManager *m_network;
     bool m_formPost = false;
+    // One thread, so answers are done in the order they arrived.
+    QThreadPool m_parser;
 };
 
 QString networkErrorText(QNetworkReply *reply);

@@ -1,7 +1,10 @@
 #include "subsonic.h"
 
 #include <QNetworkAccessManager>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QTest>
+#include <QThread>
 #include <QUrlQuery>
 
 using namespace Qt::Literals::StringLiterals;
@@ -354,6 +357,46 @@ private slots:
         QCOMPARE(parsed.queryItemValue(u"t"_s),
                  subsonic::token(u"secret"_s, parsed.queryItemValue(u"s"_s)));
         QCOMPARE(client.cacheKey(), u"jo_ni_https___music.example.org"_s);
+    }
+
+    // The reply is read on another thread; the answer comes back on the caller's.
+    void fetchesAndAnswersOnTheCallersThread()
+    {
+        QTcpServer server;
+        QVERIFY(server.listen(QHostAddress::LocalHost));
+        connect(&server, &QTcpServer::newConnection, &server, [&server] {
+            while (QTcpSocket *socket = server.nextPendingConnection()) {
+                connect(socket, &QTcpSocket::readyRead, socket, [socket] {
+                    const QByteArray request = socket->readAll();
+                    if (!request.contains("\r\n\r\n"))
+                        return;
+                    const QByteArray body = request.contains("getAlbumList2")
+                        ? R"({"subsonic-response":{"status":"ok","albumList2":{"album":[{"id":"al-1","name":"A"}]}}})"
+                        : R"({"subsonic-response":{"status":"failed","error":{"code":70,"message":"no"}}})";
+                    socket->write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                                  + QByteArray::number(body.size()) + "\r\nConnection: close\r\n\r\n" + body);
+                    socket->disconnectFromHost();
+                });
+                connect(socket, &QTcpSocket::disconnected, socket, &QObject::deleteLater);
+            }
+        });
+        QNetworkAccessManager network;
+        SubsonicClient client({u"http://127.0.0.1:%1"_s.arg(server.serverPort()), u"test"_s, u"test"_s}, &network);
+        QThread *const caller = QThread::currentThread();
+        QList<Album> albums;
+        QString albumError = u"not done"_s;
+        client.albumList(u"newest"_s, 10, 0, [&](QList<Album> list, QString error) {
+            QCOMPARE(QThread::currentThread(), caller);
+            albums = std::move(list);
+            albumError = std::move(error);
+        });
+        QTRY_COMPARE(albumError, QString());
+        QCOMPARE(albums.size(), 1);
+        QCOMPARE(albums.constFirst().id, u"al-1"_s);
+
+        QString lyricsError;
+        client.lyrics(u"so-1"_s, [&](Lyrics, QString error) { lyricsError = std::move(error); });
+        QTRY_COMPARE(lyricsError, u"server error 70: no"_s);
     }
 };
 

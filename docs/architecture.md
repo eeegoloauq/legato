@@ -76,6 +76,10 @@ Navidrome's own native API is internal and is not used.
   Libraries are not merged.
 - Streaming uses `stream` with `format=raw`, so the server sends original files and never transcodes.
   A quality setting (MP3 320, Opus 192/128) can come later.
+- Replies that fill a page or the queue are read on one parser thread of the client's (a 500-song
+  page is 5 ms or more of JSON) and answered on the GUI thread in the order they arrived. Short ones
+  (ping, stars, scrobbles, the song count, playlist edits, saving the queue) are read where they
+  arrive.
 
 Endpoints in use, tested against Navidrome 0.64.1:
 

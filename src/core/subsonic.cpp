@@ -2,11 +2,13 @@
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
+#include <QFuture>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QPromise>
 #include <QRandomGenerator>
 #include <QRegularExpression>
 
@@ -483,6 +485,8 @@ SubsonicClient::SubsonicClient(Credentials credentials, QNetworkAccessManager *n
     , m_credentials(std::move(credentials))
     , m_network(network)
 {
+    m_parser.setObjectName(u"subsonic parser"_s);
+    m_parser.setMaxThreadCount(1);
 }
 
 QString SubsonicClient::cacheKey() const
@@ -596,8 +600,23 @@ template <typename T>
 void SubsonicClient::fetch(const QString &endpoint, const QUrlQuery &params, T (*parse)(const QJsonObject &),
                            Done<T> done)
 {
-    callJson(endpoint, params, [parse, done = std::move(done)](const ApiResult &result) {
-        done(result.ok() ? parse(result.body) : T{}, result.error);
+    QNetworkReply *reply = get(endpoint, params);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, parse, done = std::move(done)]() mutable {
+        reply->deleteLater();
+        if (reply->error() != QNetworkReply::NoError)
+            return done(T{}, networkErrorText(reply));
+        // A page of 500 songs is 5 ms or more of JSON, a large playlist several frames. The answer
+        // is dropped when this client goes first.
+        QPromise<std::pair<T, QString>> promise;
+        promise.future().then(this, [done = std::move(done)](std::pair<T, QString> answer) {
+            done(std::move(answer.first), std::move(answer.second));
+        });
+        m_parser.start([promise = std::move(promise), json = reply->readAll(), parse]() mutable {
+            promise.start();
+            const ApiResult result = subsonic::parseEnvelope(json);
+            promise.addResult(std::pair{result.ok() ? parse(result.body) : T{}, result.error});
+            promise.finish();
+        });
     });
 }
 
