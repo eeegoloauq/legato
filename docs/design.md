@@ -279,3 +279,30 @@ the right.
 
 Interface text names things the way listeners know them: "Crossfade", "Up Next", "Get info". Errors
 say what went wrong and what to do.
+
+## Planned work
+
+The detail behind [the roadmap](roadmap.md).
+
+Out, for now: offline downloads, equalizer, visualizer, tray icon, internet radio, merged libraries
+of several servers, transcoding, volume leveling (gain tags in real libraries are too often wrong to
+apply, and measuring loudness would mean decoding every song in full), song change notifications
+(the desktop's media controls already show the song).
+
+### Next
+
+- A web demo on GitHub Pages: the same QML built with Qt for WebAssembly, single-threaded (Pages
+  cannot send the headers threads need), over an invented library bundled into the page, made from
+  `scripts/fake-subsonic.py`. No playback: the player bar shows a song and does not play it. First a
+  size check of the build, compressed as Pages serves it: about 10 MB is fine.
+- Windows: media keys and the media flyout (SMTC), window snapping and shadow for the frameless
+  window.
+- An endless Instant Mix.
+- A streaming quality setting (Opus, MP3) for slow connections.
+- Flatpak on Flathub, once its KDE runtime has Qt 6.12.
+- macOS.
+
+### Experiments
+
+- Beat-matched crossfade and DJ-style cue points. Two mpv instances start tens of milliseconds apart
+  and drift, so this needs both songs mixed in one audio stream first.
