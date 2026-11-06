@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Effects
 import Legato
 
 // An artist in a grid: a round photo, the name under it and how many albums. A click opens
@@ -26,7 +25,7 @@ Item {
         width: card.coverSize
         height: card.coverSize
 
-        RectangularShadow {
+        Shadow {
             anchors.fill: parent
             visible: Theme.shadowsOn
             radius: width / 2

@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Effects
 import Legato
 
 // A playlist in a grid or a carousel: its cover, name and song count. A click opens it; the play
@@ -37,7 +36,7 @@ Item {
         width: card.coverSize
         height: card.coverSize
 
-        RectangularShadow {
+        Shadow {
             anchors.fill: parent
             visible: Theme.shadowsOn
             radius: Theme.radiusArt

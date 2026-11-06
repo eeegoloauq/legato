@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Effects
 import Legato
 
 // The sign-in card (docs/design.md, "Sign-in and servers"): the whole window, without the sidebar
@@ -85,7 +84,7 @@ Rectangle {
             width: 380
             height: form.implicitHeight + 52
 
-            RectangularShadow {
+            Shadow {
                 anchors.fill: parent
                 visible: Theme.shadowsOn
                 radius: Theme.radiusCard

@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Effects
 import Legato
 
 // A menu in the app's look: a rounded glass card with a soft shadow. Its entries are Actions. An
@@ -127,7 +126,7 @@ Menu {
     background: Item {
         implicitWidth: 220
 
-        RectangularShadow {
+        Shadow {
             anchors.fill: parent
             visible: Theme.shadowsOn
             radius: Theme.radius

@@ -40,6 +40,12 @@ no cache of decoded covers in memory: it would keep what letting go saves. A del
 cache buffer is visible and keeps its cover, so a `cacheBuffer` is about one screen; Home's five
 rows stay built so that each keeps where it was scrolled sideways.
 
+**Qt's own leaks count too.** Qt's `RectangularShadow` never deletes its default material, so each
+shadow destroyed left a shader effect behind (176 after one pass through the album grid).
+`qml/Shadow.qml` gives the material to the shadow; a shadow is always a `Shadow`. LeakSanitizer
+found it in the app test, where the window is destroyed at exit; a run that keeps it (the `qml`
+tool) reports nothing.
+
 **Covers are decoded at the size shown.** `RoundedImage` asks for the longest side times the device
 pixel ratio and the provider scales while decoding. The 512 MB disk caches bound nothing in RAM.
 

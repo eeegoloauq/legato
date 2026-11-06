@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Effects
 import Legato
 
 // The sidebar (docs/design.md, "Shell"): the pages, the pins, each playlist with its cover, and
@@ -19,7 +18,7 @@ Item {
 
     signal navigate(var route)
 
-    RectangularShadow {
+    Shadow {
         anchors.fill: parent
         visible: sidebar.floating && Theme.shadowsOn
         offset.x: 8

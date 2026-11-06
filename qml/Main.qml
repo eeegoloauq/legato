@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Effects
 import Legato
 
 // The shell (docs/design.md, "Shell"): the sidebar, pages in the content area under a glass header
@@ -403,7 +402,7 @@ ApplicationWindow {
         }
 
         // Only while it slides over the content; in place, a hairline divides them.
-        RectangularShadow {
+        Shadow {
             anchors.fill: sidePanel
             visible: sidePanel.visible && sidePanel.reveal < 1 && Theme.shadowsOn
             offset.x: -8

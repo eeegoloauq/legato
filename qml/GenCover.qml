@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Effects
 import Legato
 
 // Generated cover: soft color blobs with the name set large in white (docs/design.md, "Generated
@@ -17,7 +16,7 @@ Item {
 
     readonly property int labelSize: Math.round(Math.max(18, Math.min(30, width * 0.12)))
 
-    RectangularShadow {
+    Shadow {
         anchors.fill: blobs
         visible: root.shadow && Theme.shadowsOn
         radius: root.radius

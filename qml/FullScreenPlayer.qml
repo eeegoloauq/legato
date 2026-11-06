@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Effects
 import QtQuick.Layouts
 import Legato
 
@@ -141,7 +140,7 @@ Rectangle {
                 Layout.preferredWidth: column.coverSize
                 Layout.preferredHeight: column.coverSize
 
-                RectangularShadow {
+                Shadow {
                     anchors.fill: parent
                     radius: 12
                     offset.y: 30

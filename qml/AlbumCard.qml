@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Effects
 import Legato
 
 // An album in a grid or a carousel (docs/design.md, "Covers and carousels"). The cover and the
@@ -54,7 +53,7 @@ Item {
         width: card.coverSize
         height: card.coverSize
 
-        RectangularShadow {
+        Shadow {
             anchors.fill: parent
             visible: Theme.shadowsOn
             radius: Theme.radiusArt

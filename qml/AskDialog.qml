@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Effects
 import Legato
 
 // A small card over the dimmed window that asks for a name (New Playlist, Rename) or confirms
@@ -84,7 +83,7 @@ Popup {
     }
 
     background: Item {
-        RectangularShadow {
+        Shadow {
             anchors.fill: parent
             visible: Theme.shadowsOn
             radius: Theme.radiusCard

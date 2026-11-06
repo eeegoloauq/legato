@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Effects
 import Legato
 
 // Get info (docs/design.md, "Get info"): a card over the dimmed window with a song's or an album's
@@ -72,7 +71,7 @@ Popup {
     }
 
     background: Item {
-        RectangularShadow {
+        Shadow {
             anchors.fill: parent
             visible: Theme.shadowsOn
             radius: Theme.radiusCard

@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Effects
 import Legato
 
 // The round play or "…" button over a cover under the pointer.
@@ -33,7 +32,7 @@ Button {
     Component.onCompleted: made = true
 
     background: Item {
-        RectangularShadow {
+        Shadow {
             anchors.fill: parent
             visible: Theme.shadowsOn
             radius: height / 2

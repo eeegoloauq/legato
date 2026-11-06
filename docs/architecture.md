@@ -16,7 +16,7 @@ Qt Quick and C++ with libmpv. [Decision 0001](decisions/0001-qt-quick.md) record
 | Application layer | C++20, exposed to QML as singletons (`Session`, `Library`, `Player`) and models. |
 | Audio | libmpv, audio only (no video output, no render API). |
 | HTTP and JSON | Qt Network (`QNetworkAccessManager`) and Qt's JSON classes. |
-| Effects | Qt Quick Effects (`MultiEffect` blur, `RectangularShadow`) and own shaders built with Qt Shader Tools. |
+| Effects | Qt Quick Effects (`MultiEffect` blur, `RectangularShadow` through `Shadow`, which deletes the material Qt leaves without an owner) and own shaders built with Qt Shader Tools. |
 | Images | Qt's image readers; the Qt Image Formats module adds WebP covers. |
 | Media keys / now playing | MPRIS over Qt D-Bus on Linux; SMTC on Windows later. |
 | Credentials | The system keychain through QtKeychain (Secret Service on Linux, Credential Manager on Windows). |

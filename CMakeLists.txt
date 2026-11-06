@@ -98,6 +98,7 @@ qt_add_qml_module(legato
     qml/SearchField.qml
     qml/SectionTitle.qml
     qml/SettingsPage.qml
+    qml/Shadow.qml
     qml/SidePanel.qml
     qml/Sidebar.qml
     qml/SidebarItem.qml
@@ -174,6 +175,7 @@ qt_add_qml_module(legato
     src/app/library.h src/app/library.cpp
     src/app/logfile.h src/app/logfile.cpp
     src/app/lyricsfinder.h src/app/lyricsfinder.cpp
+    src/app/materialowner.h src/app/materialowner.cpp
     src/app/mixanalyzer.h src/app/mixanalyzer.cpp
     src/app/models.h src/app/models.cpp
     src/app/mpvoptions.h src/app/mpvoptions.cpp

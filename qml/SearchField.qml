@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Effects
 import Legato
 
 // Search (docs/design.md, "Search"): a field at the right end of the header on every page, with
@@ -287,7 +286,7 @@ Item {
         }
 
         background: Item {
-            RectangularShadow {
+            Shadow {
                 anchors.fill: parent
                 visible: Theme.shadowsOn
                 radius: Theme.radiusCard

@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import QtQuick.Effects
 import QtQuick.Layouts
 import Legato
 
@@ -31,7 +30,7 @@ Item {
 
     implicitHeight: Theme.barHeight
 
-    RectangularShadow {
+    Shadow {
         anchors.fill: parent
         visible: Theme.shadowsOn
         radius: Theme.radiusBar
@@ -300,7 +299,7 @@ Item {
             height: 36
             visible: Player.hasSong
 
-            RectangularShadow {
+            Shadow {
                 anchors.fill: parent
                 visible: Theme.shadowsOn && Player.hasSong
                 radius: 6
