@@ -1,0 +1,7 @@
+# Leaks LeakSanitizer reports that are not leaks of Legato's, each matched as narrowly as the
+# stacks allow, with why.
+
+# SDL's audio output, which mpv tries when there is no sound server (CI, Xvfb), before Legato's
+# silent fallback: SDL keeps a few bytes per thread it ran on. Matched on SDL, not on libmpv, so an
+# mpv handle Legato fails to destroy is still reported.
+leak:libSDL2-2.0.so

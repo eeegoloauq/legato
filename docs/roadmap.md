@@ -27,13 +27,10 @@ Everything in scope above, on Linux (tarball, RPM, Arch package) and Windows (in
 
 From a read of the code on 2026-11-05. Measured on the desktop: 0.1.1 had 555 MiB PSS a few minutes
 into playback, at least 138 MiB of it memory glibc had freed and kept. Directions and how to measure
-are in [decision 0002](decisions/0002-performance.md). In order, each measured before and after:
+are in [decision 0002](decisions/0002-performance.md).
 
-1. Subsonic replies parsed off the GUI thread.
-2. Units and QML tests under AddressSanitizer, UndefinedBehaviorSanitizer and LeakSanitizer in CI,
-   with a suppressions file for Qt's and Mesa's own allocations.
-3. By ear on the desktop: gapless and both crossfade modes with the bounded mpv buffers
-   (`cache-secs=30`), and no more clipping from the bass swap's shelf in the log.
+- By ear on the desktop: gapless and both crossfade modes with the bounded mpv buffers
+  (`cache-secs=30`), and no more clipping from the bass swap's shelf in the log.
 
 ## Next
 

@@ -1,5 +1,6 @@
-# The app's checks: build, unit and QML tests and qmllint on Linux, build and tests on Windows, where
-# the Q_OS_WIN side is compiled. release.yml calls this too and publishes only when it passes.
+# The app's checks: build, unit and QML tests, the app against the fake server and qmllint on Linux;
+# the same tests again under ASan, UBSan and LSan; build and tests on Windows, where the Q_OS_WIN
+# side is compiled. release.yml calls this too and publishes only when it passes.
 #
 # A commit that only touches docs or packaging builds nothing here.
 name: ci
@@ -16,6 +17,7 @@ on:
       - CMakeLists.txt
       - CMakePresets.json
       - scripts/install-qt.sh
+      - scripts/fake-subsonic.py
       - packaging/fetch-libmpv.sh
       - packaging/build-qtkeychain.sh
       - .github/workflows/ci.yml
@@ -36,7 +38,8 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
-      # libmpv and QtKeychain are the system's (docs/architecture.md); D-Bus runs the MPRIS test.
+      # libmpv and QtKeychain are the system's (docs/architecture.md); D-Bus runs the MPRIS test,
+      # Xvfb and Mesa the app test.
       - name: build dependencies
         timeout-minutes: 10
         run: |
@@ -45,7 +48,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build pkg-config ccache mold \
             libgl-dev libegl-dev libxkbcommon-dev libxkbcommon-x11-0 libxcb-cursor0 \
-            libmpv-dev qtkeychain-qt6-dev dbus
+            libmpv-dev qtkeychain-qt6-dev dbus xvfb libgl1-mesa-dri
       # Not when release.yml calls this: a release restores no cache (see there).
       - uses: actions/cache@v6
         if: github.workflow == 'ci'
@@ -56,8 +59,8 @@ jobs:
         if: github.workflow == 'ci'
         with:
           path: ~/.cache/ccache
-          key: ccache-${{ github.sha }}
-          restore-keys: ccache-
+          key: ccache-dev-${{ github.sha }}
+          restore-keys: ccache-dev-
       - name: qt
         run: |
           [ -d ~/.cache/legato/qt/6.12.0 ] || scripts/install-qt.sh
@@ -70,6 +73,48 @@ jobs:
           XDG_CONFIG_HOME: ${{ runner.temp }}/config
           XDG_CACHE_HOME: ${{ runner.temp }}/cache
       - run: cmake --build build/dev --target all_qmllint
+
+  # The tests built with AddressSanitizer and UndefinedBehaviorSanitizer, leaks checked at exit: use
+  # after free, overflows and memory nothing points to, which a reading misses
+  # (docs/decisions/0002-performance.md). The app test is the run that reaches the library, the
+  # pages and the player. What is not ours is in tests/sanitizers/. A job of its own, so the linux
+  # job's run stays as long as it was.
+  sanitizers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - name: build dependencies
+        timeout-minutes: 10
+        run: |
+          echo 'Acquire::Retries "3"; Acquire::http::Timeout "30"; Acquire::https::Timeout "30";' |
+            sudo tee /etc/apt/apt.conf.d/99legato-retries >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build pkg-config ccache mold \
+            libgl-dev libegl-dev libxkbcommon-dev libxkbcommon-x11-0 libxcb-cursor0 \
+            libmpv-dev qtkeychain-qt6-dev dbus xvfb libgl1-mesa-dri
+      - uses: actions/cache@v6
+        if: github.workflow == 'ci'
+        with:
+          path: ~/.cache/legato/qt
+          key: qt-${{ hashFiles('scripts/install-qt.sh') }}
+      # Objects of their own: a sanitized object is not the dev build's.
+      - uses: actions/cache@v6
+        if: github.workflow == 'ci'
+        with:
+          path: ~/.cache/ccache
+          key: ccache-sanitize-${{ github.sha }}
+          restore-keys: ccache-sanitize-
+      - name: qt
+        run: |
+          [ -d ~/.cache/legato/qt/6.12.0 ] || scripts/install-qt.sh
+          echo "CMAKE_PREFIX_PATH=$HOME/.cache/legato/qt/6.12.0/gcc_64" >> "$GITHUB_ENV"
+      - run: cmake --preset sanitize
+      - run: cmake --build --preset sanitize
+      - run: ctest --test-dir build/sanitize --output-on-failure
+        env:
+          XDG_CONFIG_HOME: ${{ runner.temp }}/config
+          XDG_CACHE_HOME: ${{ runner.temp }}/cache
 
   # A Release build, as the installer is, with the release's Qt, libmpv and QtKeychain.
   windows:
