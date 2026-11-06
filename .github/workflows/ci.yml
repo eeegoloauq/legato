@@ -115,10 +115,42 @@ jobs:
           echo "CMAKE_PREFIX_PATH=$HOME/.cache/legato/qt/6.12.0/gcc_64" >> "$GITHUB_ENV"
       - run: cmake --preset sanitize
       - run: cmake --build --preset sanitize
-      - run: ctest --test-dir build/sanitize --output-on-failure
+      - name: test
+        run: |
+          set -o pipefail
+          ctest --test-dir build/sanitize --output-on-failure 2>&1 | tee test.log
         env:
           XDG_CONFIG_HOME: ${{ runner.temp }}/config
           XDG_CACHE_HOME: ${{ runner.temp }}/cache
+      # As on Windows: annotations are public, the log is not. One per failed test, from the
+      # sanitizer's report on, or the end of its output.
+      - name: failure details
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          log = Path("test.log")
+          if log.exists():
+              failed = {}
+              name = None
+              for line in log.read_text(encoding="utf-8", errors="replace").splitlines():
+                  result = re.match(r"\s*\d+/\d+ Test +#\d+: (\S+) \.+(\*\*\*)?", line)
+                  if result:
+                      name = result[1] if result[2] else None
+                      if name:
+                          failed[name] = []
+                  elif re.match(r"\s+Start +\d+:|\d+% tests passed", line):
+                      name = None
+                  elif name:
+                      failed[name].append(line)
+              for name, lines in failed.items():
+                  marks = [i for i, line in enumerate(lines) if re.search(r"ERROR: |runtime error|FAIL!", line)]
+                  start = max(0, marks[0] - 5) if marks else max(0, len(lines) - 80)
+                  message = "\n".join(lines[start:start + 120])[-15000:]
+                  message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                  print(f"::error title=Sanitizers {name}::{message}")
+          PY
 
   # A Release build, as the installer is, with the release's Qt, libmpv and QtKeychain.
   windows:
