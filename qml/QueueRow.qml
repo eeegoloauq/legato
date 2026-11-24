@@ -95,7 +95,7 @@ Item {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             visible: !removeButton.visible
-            text: Math.floor(row.duration / 60) + ":" + String(Math.floor(row.duration % 60)).padStart(2, "0")
+            text: row.duration <= 0 ? "—" : Math.floor(row.duration / 60) + ":" + String(Math.floor(row.duration % 60)).padStart(2, "0")
             color: row.dimColor
             font.pixelSize: Theme.fsSmall
             font.features: { "tnum": 1 }

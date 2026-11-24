@@ -143,6 +143,9 @@ private slots:
         mixed[1].suffix = u"mp3"_s;
         // Mixed formats: none named.
         QCOMPARE(songSummary(mixed, true), u"2 songs, 41 minutes, 312 MB"_s);
+        mixed[1].duration = 0;
+        QCOMPARE(songSummary(mixed, true), u"2 songs, 312 MB"_s);
+        QCOMPARE(songSummary({song(u"unknown"_s, 1, 0)}, false), u"1 song"_s);
     }
 
     // Find in page: every word somewhere in title, artists or album, without case or accents.

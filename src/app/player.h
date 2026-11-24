@@ -55,7 +55,8 @@ class Player : public QObject
     Q_PROPERTY(bool starred READ starred NOTIFY starredChanged)
     Q_PROPERTY(bool playing READ playing NOTIFY playingChanged)
     Q_PROPERTY(double position READ position NOTIFY positionChanged)
-    Q_PROPERTY(double duration READ duration NOTIFY durationChanged)
+    Q_PROPERTY(double duration READ duration NOTIFY songChanged)
+    Q_PROPERTY(bool canSeek READ canSeek NOTIFY canSeekChanged)
     Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool shuffle READ shuffle NOTIFY shuffleChanged)
     // 0 off, 1 all, 2 this song
@@ -136,7 +137,8 @@ public:
     bool starred() const { return song().starred; }
     bool playing() const { return m_playing; }
     double position() const { return m_position; }
-    double duration() const { return m_duration; }
+    double duration() const;
+    bool canSeek() const;
     int volume() const { return m_volume; }
     void setVolume(int volume);
     bool shuffle() const { return m_shuffle; }
@@ -185,7 +187,7 @@ signals:
     void starredChanged();
     void playingChanged();
     void positionChanged();
-    void durationChanged();
+    void canSeekChanged();
     void volumeChanged();
     void shuffleChanged();
     void repeatChanged();
@@ -218,8 +220,9 @@ private:
         // sends the next value whatever it is.
         double bassCut = 0;
         double sentBassCut = 0;
-        // What mpv reports for its song; 0 until known.
-        double duration = 0;
+        // mpv reports cache-only seeking separately from full seeking.
+        bool seekable = false;
+        bool partiallySeekable = false;
     };
 
     bool createDeck(Deck &deck, int index);
@@ -303,7 +306,6 @@ private:
     bool m_paused = true;
     bool m_playing = false;
     double m_position = 0;
-    double m_duration = 0;
     int m_volume = 100;
     bool m_shuffle = false;
     int m_repeat = 0;

@@ -528,7 +528,8 @@ Item {
 
                 Text {
                     anchors.right: parent.right
-                    text: "-" + bar.clock(Player.duration - (seek.pressed ? seek.value : Player.position))
+                    text: Player.duration > 0
+                        ? "-" + bar.clock(Player.duration - (seek.pressed ? seek.value : Player.position)) : "—"
                     color: Theme.text2
                     font.pixelSize: Theme.fsTiny
                     font.features: { "tnum": 1 }
@@ -546,6 +547,7 @@ Item {
             anchors.bottomMargin: -4
             height: 12
             visible: Player.hasSong
+            enabled: Player.duration > 0 && Player.canSeek
             from: 0
             to: Math.max(1, Player.duration)
             trackHeight: song.scrubbing ? 5 : 3
@@ -566,7 +568,7 @@ Item {
 
             Binding on value {
                 when: !seek.pressed
-                value: Player.position
+                value: Player.duration > 0 ? Player.position : 0
                 restoreMode: Binding.RestoreNone
             }
         }

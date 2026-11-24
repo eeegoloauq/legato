@@ -24,7 +24,7 @@ namespace legato {
 namespace {
 
 // Reply ids of the observed properties; events are matched by name.
-enum Observed : uint64_t { Pause = 1, TimePos, Duration, Path, IdleActive };
+enum Observed : uint64_t { Pause = 1, TimePos, Path, IdleActive, Seekable, PartiallySeekable };
 // Reply id of the bass swap's filter commands, whose failures are logged.
 constexpr uint64_t BassReply = 100;
 
@@ -108,7 +108,8 @@ bool Player::createDeck(Deck &deck, int index)
     // The volume is not observed: legato sets it, and during a fade it is not the user's volume.
     mpv_observe_property(mpv, Pause, "pause", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, TimePos, "time-pos", MPV_FORMAT_DOUBLE);
-    mpv_observe_property(mpv, Duration, "duration", MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv, Seekable, "seekable", MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv, PartiallySeekable, "partially-seekable", MPV_FORMAT_FLAG);
     mpv_observe_property(mpv, Path, "path", MPV_FORMAT_STRING);
     mpv_observe_property(mpv, IdleActive, "idle-active", MPV_FORMAT_FLAG);
     m_wakeSlots[index] = {this, index};
@@ -199,8 +200,7 @@ void Player::restore(const QList<Song> &songs, const QList<QUrl> &urls, int inde
     active().nextUrl.clear();
     m_nextUrl.clear();
     m_fadeNext = false;
-    m_duration = song().duration;
-    m_position = std::clamp(seconds, 0.0, std::max(0.0, m_duration));
+    m_position = std::clamp(seconds, 0.0, duration());
     setError({});
     announceSong();
 }
@@ -265,10 +265,8 @@ void Player::startAt(int index, double from)
     deck.currentUrl = entry->url.toEncoded();
     deck.switching = true;
     deck.failed = false;
-    deck.duration = 0;
     deck.pendingSeek = from;
     m_position = from;
-    m_duration = entry->song.duration;
     command(deck, {"loadfile", deck.currentUrl.constData(), "replace"});
     command(deck, {"set", "pause", "no"});
     m_paused = false;
@@ -287,6 +285,7 @@ void Player::updateNext(bool force)
     command(deck, {"set", "loop-file", loopFile ? "inf" : "no"});
     const QByteArray url = following >= 0 && !loopFile ? m_queue.at(following).url.toEncoded() : QByteArray();
     const bool fade = !url.isEmpty() && m_crossfade > 0
+        && duration() > 0 && m_queue.at(following).song.duration > 0
         && !(m_keepAlbumsGapless && crossfade::albumContinues(song(), m_queue.at(following).song));
     if (!force && url == m_nextUrl && fade == m_fadeNext)
         return;
@@ -317,7 +316,7 @@ double Player::fadeLength() const
     const int following = m_queue.following(m_repeat == 1);
     if (following < 0)
         return 0;
-    return crossfade::length(m_crossfade, m_duration, m_queue.at(following).song.duration);
+    return crossfade::length(m_crossfade, duration(), m_queue.at(following).song.duration);
 }
 
 QByteArray Player::planKey() const
@@ -334,7 +333,7 @@ crossfade::Plan Player::plan() const
 
 void Player::analyzeNext()
 {
-    if (!m_automatic || !m_analyzer || m_position < m_duration - AnalyzeSeconds)
+    if (!m_automatic || !m_analyzer || m_position < duration() - AnalyzeSeconds)
         return;
     const QByteArray key = planKey();
     const int following = m_queue.following(m_repeat == 1);
@@ -359,7 +358,7 @@ void Player::analyzeNext()
             return;
         automix::Judged judged;
         if (!parts->tail.level.isEmpty() && !parts->head.level.isEmpty()) {
-            const double limit = crossfade::length(automix::MaxOverlap, self->m_duration, inDuration);
+            const double limit = crossfade::length(automix::MaxOverlap, self->duration(), inDuration);
             self->m_autoPlan = automix::plan(parts->tail, parts->head, limit, &judged);
         }
         if (const auto &p = self->m_autoPlan) {
@@ -394,19 +393,18 @@ void Player::cueNext()
 
 void Player::checkFade()
 {
-    if (!m_fadeNext || m_fading || m_ended || active().switching || m_duration <= 0)
+    if (!m_fadeNext || m_fading || m_ended || active().switching || duration() <= 0)
         return;
     analyzeNext();
     const crossfade::Plan p = plan();
     Deck &next = other();
-    const double start = m_duration - p.start;
+    const double start = duration() - p.start;
     // Early enough for a slow server, late enough that a paused stream is not left open for long.
     if (next.currentUrl != m_nextUrl && m_position >= start - PreloadSeconds) {
         next.currentUrl = m_nextUrl;
         next.nextUrl.clear();
         next.switching = true;
         next.failed = false;
-        next.duration = 0;
         next.cue = 0;
         next.gain = 0;
         applyVolume(next);
@@ -415,7 +413,7 @@ void Player::checkFade()
         command(next, {"loadfile", next.currentUrl.constData(), "replace"});
     }
     if (m_position >= start && next.currentUrl == m_nextUrl && !next.switching && !next.failed)
-        beginFade(m_duration - p.stop - m_position);
+        beginFade(duration() - p.stop - m_position);
 }
 
 void Player::beginFade(double remaining)
@@ -430,7 +428,6 @@ void Player::beginFade(double remaining)
     m_fadeDue = false;
     m_queue.setPosition(m_queue.following(m_repeat == 1));
     m_position = in.cue;
-    m_duration = in.duration > 0 ? in.duration : song().duration;
     // Too little of the old song is left to hear a fade: the new one starts as after a gap.
     if (m_fadeLength < 0.3) {
         command(out, {"stop"});
@@ -537,7 +534,7 @@ void Player::announceSong()
     emit starredChanged();
     emit queueChanged();
     emit positionChanged();
-    emit durationChanged();
+    emit canSeekChanged();
     m_lyrics.clear();
     m_lyricsSynced = false;
     emit lyricsChanged();
@@ -575,6 +572,7 @@ void Player::drainEvents(int index)
             if (deck.pendingSeek > 0)
                 command(deck, {"seek", QByteArray::number(deck.pendingSeek).constData(), "absolute"});
             deck.pendingSeek = 0;
+            emit canSeekChanged();
             break;
         case MPV_EVENT_END_FILE: {
             const auto *end = static_cast<mpv_event_end_file *>(event->data);
@@ -582,6 +580,7 @@ void Player::drainEvents(int index)
                 break;
             if (isActive) {
                 deck.failed = true;
+                emit canSeekChanged();
                 setError(u"The song could not be played: %1"_s.arg(QString::fromUtf8(mpv_error_string(end->error))));
             } else if (!m_fading) {
                 // The next song would not load. The active one plays to its end; then the next is
@@ -616,16 +615,20 @@ void Player::drainEvents(int index)
 void Player::onProperty(int index, const mpv_event_property &property)
 {
     Deck &deck = m_decks[index];
-    // Kept for the other deck too: it reports the length of the next song before that one is shown.
-    if (qstrcmp(property.name, "duration") == 0 && property.format == MPV_FORMAT_DOUBLE)
-        deck.duration = *static_cast<double *>(property.data);
+    const QByteArray name(property.name);
+    const auto flag = [&] { return property.format == MPV_FORMAT_FLAG && *static_cast<int *>(property.data); };
+    if (name == "seekable" || name == "partially-seekable") {
+        bool &capability = name == "seekable" ? deck.seekable : deck.partiallySeekable;
+        const bool before = canSeek();
+        capability = flag();
+        if (canSeek() != before)
+            emit canSeekChanged();
+        return;
+    }
     // The other deck only loads the next song or fades the old one out; the interface follows the
     // active one.
     if (index != m_active)
         return;
-    const auto flag = [&] { return property.format == MPV_FORMAT_FLAG && *static_cast<int *>(property.data); };
-    const auto number = [&] { return property.format == MPV_FORMAT_DOUBLE ? *static_cast<double *>(property.data) : 0.0; };
-    const QByteArray name(property.name);
     if (name == "pause") {
         m_paused = flag();
         updatePlaying();
@@ -634,17 +637,12 @@ void Player::onProperty(int index, const mpv_event_property &property)
         if (property.format != MPV_FORMAT_DOUBLE || deck.switching || deck.pendingSeek > 0)
             return;
         const double previous = m_position;
-        m_position = number();
+        m_position = *static_cast<double *>(property.data);
         emit positionChanged();
         // mpv went back to the start of the song by itself: repeat.
         if (m_position < previous - 1.5)
             emit seeked();
         checkFade();
-    } else if (name == "duration") {
-        if (property.format != MPV_FORMAT_DOUBLE || deck.switching)
-            return;
-        m_duration = number();
-        emit durationChanged();
     } else if (name == "path") {
         if (property.format != MPV_FORMAT_STRING)
             return;
@@ -657,9 +655,6 @@ void Player::onProperty(int index, const mpv_event_property &property)
         deck.currentUrl = deck.nextUrl;
         deck.failed = false;
         m_position = 0;
-        // mpv reports the new file's length before its path, or not at all when it is as long as
-        // the last one; the server's rounded length is only for when mpv has none yet.
-        m_duration = deck.duration > 0 ? deck.duration : song().duration;
         updateNext(true);
         announceSong();
     } else if (name == "idle-active" && flag() && hasSong() && !m_ended) {
@@ -687,8 +682,10 @@ void Player::endQueue()
     m_ended = true;
     m_nextUrl.clear();
     m_fadeNext = false;
-    m_position = m_duration;
+    if (duration() > 0)
+        m_position = duration();
     emit positionChanged();
+    emit canSeekChanged();
     updatePlaying();
 }
 
@@ -800,7 +797,7 @@ void Player::togglePause()
     if (!hasSong())
         return;
     if (m_ended) {
-        startAt(m_queue.position(), m_position < m_duration - 1 ? m_position : 0);
+        startAt(m_queue.position(), m_position < duration() - 1 ? m_position : 0);
         return;
     }
     setPaused(!m_paused);
@@ -825,11 +822,30 @@ void Player::previous()
     startAt(m_queue.position() > 0 ? m_queue.position() - 1 : m_queue.size() - 1);
 }
 
-void Player::seek(double seconds)
+double Player::duration() const
+{
+    // mpv can extend its reported duration as it demuxes more packets. The server's
+    // catalog length is stable for this track; zero means the length is unknown.
+    return std::max(0, song().duration);
+}
+
+bool Player::canSeek() const
 {
     if (!hasSong())
+        return false;
+    // For a stopped track with a known length, seeking sets the next start position.
+    if (m_ended)
+        return duration() > 0;
+    const Deck &deck = m_decks[m_active];
+    return !deck.switching && !deck.failed && deck.seekable && !deck.partiallySeekable;
+}
+
+void Player::seek(double seconds)
+{
+    if (!canSeek() || !std::isfinite(seconds))
         return;
-    seconds = std::clamp(seconds, 0.0, std::max(0.0, m_duration));
+    const double length = duration();
+    seconds = length > 0 ? std::clamp(seconds, 0.0, length) : std::max(0.0, seconds);
     m_position = seconds;
     emit positionChanged();
     emit seeked();
@@ -839,7 +855,7 @@ void Player::seek(double seconds)
     // A seek during a fade is in the new song: the old one goes at once.
     finishFade();
     // A song loaded for a fade that is now minutes away would sit on an open, paused stream.
-    if (!other().currentUrl.isEmpty() && seconds < m_duration - plan().start - 2 * PreloadSeconds)
+    if (!other().currentUrl.isEmpty() && seconds < duration() - plan().start - 2 * PreloadSeconds)
         dropOther();
     command(active(), {"seek", QByteArray::number(seconds).constData(), "absolute"});
 }
@@ -964,7 +980,6 @@ void Player::stop()
     m_nextUrl.clear();
     m_fadeNext = false;
     m_position = 0;
-    m_duration = 0;
     announceSong();
 }
 

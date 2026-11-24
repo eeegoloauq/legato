@@ -38,7 +38,7 @@ Mpris::Mpris(Player *player, CoverStore *covers, QObject *parent)
     new MprisRoot(this);
     m_adaptor = new MprisPlayer(this);
 
-    for (auto signal : {&Player::playingChanged, &Player::durationChanged, &Player::volumeChanged,
+    for (auto signal : {&Player::playingChanged, &Player::canSeekChanged, &Player::volumeChanged,
                         &Player::shuffleChanged, &Player::repeatChanged})
         connect(player, signal, this, &Mpris::schedule);
     connect(player, &Player::songChanged, this, [this] {
@@ -157,7 +157,7 @@ void Mpris::flush()
         {u"CanGoPrevious"_s, hasSong},
         {u"CanPlay"_s, hasSong},
         {u"CanPause"_s, hasSong},
-        {u"CanSeek"_s, hasSong},
+        {u"CanSeek"_s, m_player->canSeek()},
     };
     QVariantMap changed;
     for (auto it = now.cbegin(); it != now.cend(); ++it) {
@@ -262,6 +262,11 @@ bool MprisPlayer::hasSong() const
     return m_mpris->player()->hasSong();
 }
 
+bool MprisPlayer::canSeek() const
+{
+    return m_mpris->player()->canSeek();
+}
+
 void MprisPlayer::Next()
 {
     m_mpris->player()->next();
@@ -299,6 +304,8 @@ void MprisPlayer::Play()
 void MprisPlayer::Seek(qlonglong offset)
 {
     Player *player = m_mpris->player();
+    if (!player->canSeek())
+        return;
     const double target = player->position() + offset / 1e6;
     // Past the end is the next song, as the spec says.
     if (player->duration() > 0 && target >= player->duration())
@@ -312,7 +319,7 @@ void MprisPlayer::SetPosition(const QDBusObjectPath &trackId, qlonglong position
     Player *player = m_mpris->player();
     const double seconds = position / 1e6;
     // An old track's id or a position outside the song is ignored, as the spec says.
-    if (trackId != m_mpris->trackId() || seconds < 0 || seconds > player->duration())
+    if (trackId != m_mpris->trackId() || seconds < 0 || (player->duration() > 0 && seconds > player->duration()))
         return;
     player->seek(seconds);
 }

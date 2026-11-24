@@ -277,7 +277,7 @@ Rectangle {
                 trackHeight: 5
                 fillColor: "white"
                 trackColor: Qt.rgba(1, 1, 1, 0.22)
-                enabled: Player.hasSong
+                enabled: Player.duration > 0 && Player.canSeek
                 Accessible.name: qsTr("Position")
                 onPressedChanged: {
                     if (!pressed)
@@ -290,7 +290,7 @@ Rectangle {
 
                 Binding on value {
                     when: !seek.pressed
-                    value: Player.position
+                    value: Player.duration > 0 ? Player.position : 0
                     restoreMode: Binding.RestoreNone
                 }
             }
@@ -326,7 +326,8 @@ Rectangle {
                     }
                 }
                 Text {
-                    text: "-" + root.clock(Player.duration - (seek.pressed ? seek.value : Player.position))
+                    text: Player.duration > 0
+                        ? "-" + root.clock(Player.duration - (seek.pressed ? seek.value : Player.position)) : "—"
                     color: root.dim
                     font.pixelSize: 12
                     font.features: { "tnum": 1 }

@@ -112,7 +112,7 @@ class MprisPlayer : public QDBusAbstractAdaptor
     Q_PROPERTY(bool CanGoPrevious READ hasSong)
     Q_PROPERTY(bool CanPlay READ hasSong)
     Q_PROPERTY(bool CanPause READ hasSong)
-    Q_PROPERTY(bool CanSeek READ hasSong)
+    Q_PROPERTY(bool CanSeek READ canSeek)
     Q_PROPERTY(bool CanControl READ canControl)
 
 public:
@@ -130,6 +130,7 @@ public:
     void setVolume(double volume);
     qlonglong position() const;
     bool hasSong() const;
+    bool canSeek() const;
     bool canControl() const { return true; }
 
 public slots:

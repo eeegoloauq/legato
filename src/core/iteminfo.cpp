@@ -135,12 +135,14 @@ QList<InfoRow> albumInfo(const Album &album, const QList<Song> &songs)
     add(rows, "Songs", countText(songs.isEmpty() ? album.songCount : songs.size()));
     qint64 seconds = 0;
     qint64 bytes = 0;
+    bool allDurationsKnown = !songs.isEmpty();
     for (const Song &song : songs) {
+        allDurationsKnown &= song.duration > 0;
         seconds += song.duration;
         bytes += song.size;
     }
-    if (seconds == 0)
-        seconds = album.duration;
+    if (!allDurationsKnown)
+        seconds = songs.isEmpty() ? album.duration : 0;
     add(rows, "Length", seconds > 0 ? durationText(seconds) : QString());
     if (!songs.isEmpty()) {
         const QString first = formatText(songs.constFirst());

@@ -271,7 +271,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: 44
             horizontalAlignment: Text.AlignRight
-            text: Math.floor(songRow.duration / 60) + ":" + String(songRow.duration % 60).padStart(2, "0")
+            text: songRow.duration <= 0 ? "—" : Math.floor(songRow.duration / 60) + ":" + String(songRow.duration % 60).padStart(2, "0")
             color: Theme.text2
             font.pixelSize: Theme.fsSmall
             font.features: { "tnum": 1 }

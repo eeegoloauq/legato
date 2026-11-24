@@ -117,6 +117,11 @@ mpv is used for streaming, buffering, gapless playback, codec support and audio 
 selection. Legato talks to libmpv directly: options and commands from the GUI thread, events drained
 on the GUI thread after mpv's wakeup callback.
 
+The player uses the catalog's track duration for the seek bars, desktop controls and crossfade.
+When it is unknown, the player shows elapsed time and leaves the full-track seek bars inactive.
+Timestamp seeks still work when mpv reports full seeking. A transition with an unknown duration
+uses gapless playback and advances at the end of the stream.
+
 Legato owns the queue (`src/core/playqueue.*`): the songs as given and the order they play in, with
 its own shuffle. mpv's playlist only holds the current song and the next one, so mpv fetches the
 next song early (`prefetch-playlist`) and plays the two without a gap (`gapless-audio`). mpv's

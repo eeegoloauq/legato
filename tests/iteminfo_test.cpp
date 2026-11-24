@@ -125,6 +125,7 @@ private slots:
         mp3.suffix = u"mp3"_s;
         const QList<InfoRow> rows = albumInfo(album, {flac(u"1"_s, 60), mp3});
         QCOMPARE(valueOf(rows, u"Format"_s), u"Mixed"_s);
+        QVERIFY(!labels(rows).contains(u"Length"_s));
         // Without a full date, the year.
         QCOMPARE(valueOf(rows, u"Released"_s), u"2001"_s);
     }

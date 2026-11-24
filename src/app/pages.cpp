@@ -44,13 +44,16 @@ QString songSummary(const QList<Song> &songs, bool format)
         return {};
     qint64 seconds = 0;
     qint64 bytes = 0;
+    bool allDurationsKnown = true;
     for (const Song &song : songs) {
+        allDurationsKnown &= song.duration > 0;
         seconds += song.duration;
         bytes += song.size;
     }
     const qsizetype count = songs.size();
     QString text = count == 1 ? QObject::tr("1 song") : QObject::tr("%1 songs").arg(count);
-    text += u", "_s + durationText(seconds);
+    if (allDurationsKnown)
+        text += u", "_s + durationText(seconds);
     if (bytes > 0)
         text += u", "_s + QLocale().formattedDataSize(bytes, 0, QLocale::DataSizeSIFormat);
     if (format) {
