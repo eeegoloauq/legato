@@ -6,7 +6,9 @@
 #include "models.h"
 #include "scrobbletracker.h"
 
+#include <QJSValue>
 #include <QObject>
+#include <QSet>
 #include <QtQmlIntegration>
 
 #include <functional>
@@ -76,8 +78,8 @@ public:
     // Playlists (docs/design.md, "Playlists"). `kind` and `id` name what is added: a "song" or an
     // "album" (all its songs), or nothing for an empty new playlist. Each says how it went with
     // notice() or the player bar's error, and lists that changed reload (playlistChanged).
-    // Songs already in the playlist are left out, as in other players.
-    Q_INVOKABLE void addToPlaylist(const QString &playlistId, const QString &kind, const QString &id);
+    Q_INVOKABLE void loadPlaylistMembership(const QString &kind, const QString &id, QObject *context, QJSValue ready);
+    Q_INVOKABLE void setPlaylistMembership(const QString &playlistId, const QString &kind, const QString &id, bool member);
     Q_INVOKABLE void newPlaylist(const QString &name, const QString &kind = {}, const QString &id = {});
     // The song at `index` of the playlist as the server lists it.
     Q_INVOKABLE void removeFromPlaylist(const QString &playlistId, int index);
@@ -115,8 +117,11 @@ signals:
     void listensSent();
 
 private:
-    // The ids of the songs `kind` and `id` name (see addToPlaylist); `then` runs only on success.
-    void songIdsOf(const QString &kind, const QString &id, std::function<void(QStringList)> then);
+    // The ids of the songs `kind` and `id` name, or a server error.
+    void songIdsOf(const QString &kind, const QString &id, std::function<void(QStringList, QString)> then);
+    bool beginPlaylistSongUpdate(const QString &id);
+    void updatePlaylistSongs(const QString &id, const QStringList &added, const QList<int> &removed,
+                             const QString &message = {});
     void startMix(const QString &artistId, const QString &artistName, const std::optional<Song> &seed);
     void setStarred(int item, const QString &id, bool starred);
     void reportError(const QString &error);
@@ -135,6 +140,7 @@ private:
     Player *m_player = nullptr;
     QueueSync *m_queueSync = nullptr;
     PlaylistModel m_playlists;
+    QSet<QString> m_playlistSongUpdates;
     ScrobbleTracker m_scrobbles;
     // Listens the server did not get (it was not reachable), resent with the next one.
     QList<Listen> m_unsent;

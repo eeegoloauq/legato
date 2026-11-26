@@ -12,11 +12,14 @@
 #include <QDateTime>
 #include <QLoggingCategory>
 #include <QNetworkAccessManager>
+#include <QPointer>
 #include <QRandomGenerator>
 #include <QSet>
 #include <QStandardPaths>
 #include <QThreadPool>
 #include <QTimer>
+
+#include <algorithm>
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -106,6 +109,7 @@ void Library::setServer(const Credentials &credentials)
     if (m_queueSync)
         m_queueSync->flush();
     ++m_generation;
+    m_playlistSongUpdates.clear();
     m_client->setCredentials(credentials);
     if (configured())
         m_covers->setDirectory(coverRoot() + m_client->cacheKey());
@@ -145,55 +149,126 @@ bool Library::canEdit(const Playlist &playlist) const
     return !playlist.readonly && (playlist.owner.isEmpty() || playlist.owner == m_client->credentials().username);
 }
 
-void Library::songIdsOf(const QString &kind, const QString &id, std::function<void(QStringList)> then)
+void Library::songIdsOf(const QString &kind, const QString &id, std::function<void(QStringList, QString)> then)
 {
     if (kind == "song"_L1)
-        return then({id});
+        return then({id}, {});
     if (kind != "album"_L1)
-        return then({});
+        return then({}, {});
     m_client->album(id, [this, then = std::move(then), generation = m_generation](const AlbumWithSongs &album, const QString &error) {
         if (generation != m_generation)
             return;
         if (!error.isEmpty())
-            return reportError(error);
+            return then({}, error);
         QStringList ids;
         for (const Song &song : album.songs)
             ids.append(song.id);
-        then(ids);
+        then(std::move(ids), {});
     });
 }
 
-void Library::addToPlaylist(const QString &playlistId, const QString &kind, const QString &id)
+void Library::loadPlaylistMembership(const QString &kind, const QString &id, QObject *context, QJSValue ready)
 {
-    if (!configured() || playlistId.isEmpty())
+    if (!configured() || id.isEmpty() || !context || !ready.isCallable())
         return;
-    songIdsOf(kind, id, [this, playlistId, generation = m_generation](const QStringList &ids) {
-        // What the playlist holds now, so a song is not added twice.
-        m_client->playlist(playlistId, [this, playlistId, ids, generation](const PlaylistWithSongs &playlist, const QString &error) {
-            if (generation != m_generation)
-                return;
-            if (!error.isEmpty())
-                return reportError(error);
-            QSet<QString> present;
-            for (const Song &song : playlist.songs)
-                present.insert(song.id);
-            QStringList added;
-            for (const QString &song : ids) {
-                if (!present.contains(song) && !added.contains(song))
-                    added.append(song);
-            }
-            const QString name = playlist.playlist.name;
-            if (added.isEmpty())
-                return emit notice(ids.size() == 1 ? tr("Already in %1").arg(name) : tr("All of these are already in %1").arg(name));
-            m_client->updatePlaylist(playlistId, {}, added, {}, [this, playlistId, name, generation](const QString &error) {
-                if (generation != m_generation)
+    songIdsOf(kind, id, [this, context = QPointer<QObject>(context), ready, generation = m_generation]
+              (const QStringList &ids, const QString &error) {
+        if (!context)
+            return;
+        if (!error.isEmpty())
+            return reportError(error);
+        if (ids.isEmpty())
+            return;
+        for (const Playlist &entry : m_playlists.items()) {
+            if (!canEdit(entry))
+                continue;
+            m_client->playlist(entry.id, [this, context, ready, ids, generation, playlistId = entry.id]
+                               (const PlaylistWithSongs &playlist, const QString &error) {
+                if (!context || generation != m_generation)
                     return;
                 if (!error.isEmpty())
                     return reportError(error);
-                emit notice(tr("Added to %1").arg(name));
-                emit playlistChanged(playlistId);
-                loadPlaylists();
+                QSet<QString> present;
+                for (const Song &song : playlist.songs)
+                    present.insert(song.id);
+                const bool member = std::all_of(ids.begin(), ids.end(), [&](const QString &id) {
+                    return present.contains(id);
+                });
+                ready.call({QJSValue(playlistId), QJSValue(member)});
             });
+        }
+    });
+}
+
+bool Library::beginPlaylistSongUpdate(const QString &id)
+{
+    if (!configured() || id.isEmpty() || m_playlistSongUpdates.contains(id))
+        return false;
+    m_playlistSongUpdates.insert(id);
+    return true;
+}
+
+void Library::updatePlaylistSongs(const QString &id, const QStringList &added, const QList<int> &removed,
+                                  const QString &message)
+{
+    m_client->updatePlaylist(id, {}, added, removed, [this, id, message, generation = m_generation](const QString &error) {
+        if (generation != m_generation)
+            return;
+        m_playlistSongUpdates.remove(id);
+        if (!error.isEmpty())
+            return reportError(error);
+        if (!message.isEmpty())
+            emit notice(message);
+        emit playlistChanged(id);
+        loadPlaylists();
+    });
+}
+
+void Library::setPlaylistMembership(const QString &playlistId, const QString &kind, const QString &id, bool member)
+{
+    if (id.isEmpty() || !beginPlaylistSongUpdate(playlistId))
+        return;
+    songIdsOf(kind, id, [this, playlistId, member, generation = m_generation](const QStringList &ids, const QString &error) {
+        if (!error.isEmpty() || ids.isEmpty()) {
+            m_playlistSongUpdates.remove(playlistId);
+            if (!error.isEmpty())
+                reportError(error);
+            return;
+        }
+        // Resolve positions from the current contents, including duplicate occurrences.
+        m_client->playlist(playlistId, [this, playlistId, ids, member, generation]
+                           (const PlaylistWithSongs &playlist, const QString &error) {
+            if (generation != m_generation)
+                return;
+            if (!error.isEmpty() || !canEdit(playlist.playlist)) {
+                m_playlistSongUpdates.remove(playlistId);
+                return reportError(error.isEmpty() ? tr("This playlist is read only") : error);
+            }
+            QSet<QString> present;
+            QList<int> removed;
+            const QSet<QString> targets(ids.begin(), ids.end());
+            for (qsizetype index = playlist.songs.size(); index > 0; --index) {
+                const QString &songId = playlist.songs.at(index - 1).id;
+                present.insert(songId);
+                if (!member && targets.contains(songId))
+                    removed.append(int(index - 1));
+            }
+            QStringList added;
+            if (member) {
+                for (const QString &songId : ids) {
+                    if (present.contains(songId))
+                        continue;
+                    added.append(songId);
+                    present.insert(songId);
+                }
+            }
+            if (added.isEmpty() && removed.isEmpty()) {
+                m_playlistSongUpdates.remove(playlistId);
+                return;
+            }
+            const QString name = playlist.playlist.name;
+            updatePlaylistSongs(playlistId, added, removed,
+                                member ? tr("Added to %1").arg(name) : tr("Removed from %1").arg(name));
         });
     });
 }
@@ -202,7 +277,9 @@ void Library::newPlaylist(const QString &name, const QString &kind, const QStrin
 {
     if (!configured() || name.trimmed().isEmpty())
         return;
-    songIdsOf(kind, id, [this, name = name.trimmed(), generation = m_generation](const QStringList &ids) {
+    songIdsOf(kind, id, [this, name = name.trimmed(), generation = m_generation](const QStringList &ids, const QString &error) {
+        if (!error.isEmpty())
+            return reportError(error);
         m_client->createPlaylist(name, ids, [this, name, generation](const Playlist &, const QString &error) {
             if (generation != m_generation)
                 return;
@@ -216,16 +293,9 @@ void Library::newPlaylist(const QString &name, const QString &kind, const QStrin
 
 void Library::removeFromPlaylist(const QString &playlistId, int index)
 {
-    if (!configured() || playlistId.isEmpty() || index < 0)
+    if (index < 0 || !beginPlaylistSongUpdate(playlistId))
         return;
-    m_client->updatePlaylist(playlistId, {}, {}, {index}, [this, playlistId, generation = m_generation](const QString &error) {
-        if (generation != m_generation)
-            return;
-        if (!error.isEmpty())
-            return reportError(error);
-        emit playlistChanged(playlistId);
-        loadPlaylists();
-    });
+    updatePlaylistSongs(playlistId, {}, {index});
 }
 
 void Library::renamePlaylist(const QString &playlistId, const QString &name)

@@ -14,9 +14,30 @@ PopupMenu {
     required property string itemId
     // Suggested for New Playlist: the song's title or the album's name.
     property string suggestion
+    property var membership: Object.create(null)
+    property int membershipRequest: 0
 
     title: qsTr("Add to Playlist")
     enabled: itemId !== ""
+
+    function refreshMembership() {
+        const request = ++membershipRequest
+        membership = Object.create(null)
+        Library.loadPlaylistMembership(kind, itemId, submenu, (playlistId, included) => {
+            if (request === submenu.membershipRequest)
+                submenu.membership = Object.assign(Object.create(null), submenu.membership, { [playlistId]: included })
+        })
+    }
+
+    onAboutToShow: refreshMembership()
+    onAboutToHide: ++membershipRequest
+    onItemIdChanged: if (visible) refreshMembership()
+
+    Connections {
+        target: Library
+        enabled: submenu.visible
+        function onPlaylistChanged() { submenu.refreshMembership() }
+    }
 
     Action {
         text: qsTr("New Playlist…")
@@ -40,7 +61,11 @@ PopupMenu {
         required property bool editable
 
         text: name
-        onTriggered: Library.addToPlaylist(playlistId, submenu.kind, submenu.itemId)
+        enabled: submenu.membership[playlistId] !== undefined
+        checkable: true
+        checked: submenu.membership[playlistId] === true
+        onTriggered: Library.setPlaylistMembership(playlistId, submenu.kind, submenu.itemId,
+                                                    submenu.membership[playlistId] === false)
     }
 
     // The user's playlists, in the server's order. A reload of the list removes them all and adds
