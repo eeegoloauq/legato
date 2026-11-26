@@ -516,7 +516,7 @@ void PlaylistDetails::fetch()
         if (!error.isEmpty())
             return finish(error);
         m_playlist = std::move(details.playlist);
-        m_songs.set(std::move(details.songs));
+        m_songs.sync(std::move(details.songs), /*refreshRetained=*/true);
         emit changed();
         finish();
     }));

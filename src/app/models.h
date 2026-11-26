@@ -55,9 +55,9 @@ protected:
     // Replaces the rows with `items`, telling the views only about the rows between what both lists
     // start and end with. Moving on in a queue removes rows at the top; removing or adding songs
     // touches only those rows. The other rows are kept, so their delegates are not built again.
-    // Rows are matched by id; a kept row takes the new row's data without a dataChanged.
+    // Rows are matched by id. A server refresh can also notify the view about retained rows.
     template <typename T>
-    void syncRows(QList<T> &rows, QList<T> items)
+    void syncRows(QList<T> &rows, QList<T> items, bool refreshRetained)
     {
         const qsizetype before = rows.size();
         const qsizetype after = items.size();
@@ -82,6 +82,10 @@ protected:
         } else {
             rows = std::move(items);
         }
+        if (refreshRetained && head > 0)
+            emit dataChanged(index(0), index(int(head - 1)));
+        if (refreshRetained && tail > 0)
+            emit dataChanged(index(int(after - tail)), index(int(after - 1)));
     }
 
     // Calls `change` on each row whose id is `id`, and reports the rows it changed.
@@ -107,7 +111,8 @@ public:                                                                         
     QString idAt(int row) const override { return has(row) ? m_items.at(row).id : QString(); }    \
     void set(QList<T> items) { replaceRows(m_items, std::move(items)); }                          \
     void append(const QList<T> &items) { appendRows(m_items, items); }                            \
-    void sync(QList<T> items) { syncRows(m_items, std::move(items)); }                            \
+    void sync(QList<T> items, bool refreshRetained = false)                                        \
+    { syncRows(m_items, std::move(items), refreshRetained); }                                       \
                                                                                                    \
 protected:                                                                                         \
     int size() const override { return int(m_items.size()); }                                      \
